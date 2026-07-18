@@ -8,11 +8,11 @@ services:
       - "1435:1433"
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=Grupo1_BDD!
+      - SA_PASSWORD=Grupo1@BDD!
     networks:
       - etl_network
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Grupo1_BDD!' -C -Q 'SELECT 1' || exit 1" ]
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Grupo1@BDD!' -C -Q 'SELECT 1' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
