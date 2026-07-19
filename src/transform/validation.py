@@ -68,6 +68,26 @@ def validar_documento(id_origen, documento_original):
     return None
 
 
+def validar_codigo_producto(id_origen, codigo_original):
+    if codigo_original is None or not str(codigo_original).strip():
+        return _error("producto", id_origen, "codigo_producto", codigo_original, "codigo de producto vacio o nulo")
+    return None
+
+
+def validar_precio_producto(id_origen, precio_original):
+    if precio_original is None or not str(precio_original).strip():
+        return _error("producto", id_origen, "precio", precio_original, "precio vacio o nulo")
+    try:
+        precio = float(precio_original)
+    except (TypeError, ValueError):
+        return _error("producto", id_origen, "precio", precio_original, "precio no es un numero valido")
+    if precio < 0:
+        return _error("producto", id_origen, "precio", precio_original, "precio negativo")
+    if precio == 0:
+        return _error("producto", id_origen, "precio", precio_original, "precio en cero")
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Deteccion de inconsistencias de negocio sobre el registro ya limpio
 # (cruces entre campos, no solo formato).
@@ -166,6 +186,7 @@ def generar_lista_errores(
     clientes_limpios,
     facturas_limpias=None,
     detalles_limpios=None,
+    productos_crudos=None,
 ):
     errores = []
 
@@ -175,6 +196,16 @@ def generar_lista_errores(
             (validar_correo, "Correo"),
             (validar_telefono, "Telefono"),
             (validar_documento, "Documento"),
+        ):
+            error = validador(id_origen, crudo.get(campo_crudo))
+            if error:
+                errores.append(error)
+
+    for crudo in productos_crudos or []:
+        id_origen = crudo["IdProductoOrigen"]
+        for validador, campo_crudo in (
+            (validar_codigo_producto, "CodigoProducto"),
+            (validar_precio_producto, "Precio"),
         ):
             error = validador(id_origen, crudo.get(campo_crudo))
             if error:
