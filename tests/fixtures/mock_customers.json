@@ -1,1 +1,116 @@
-{}
+{
+  "clientes": [
+    {
+      "IdClienteOrigen": 1,
+      "Documento": "1712345678",
+      "Nombre": "  juan   ",
+      "Apellido": "PEREZ",
+      "Correo": "JUAN.PEREZ@gmail.com ",
+      "Telefono": "099-123-4567",
+      "Direccion": "  Av. Amazonas N34-120  ",
+      "Ciudad": "quito",
+      "FechaNacimientoTexto": "1995-04-12",
+      "FechaRegistroTexto": "2024-01-15",
+      "EstadoTexto": "ACTIVO"
+    },
+    {
+      "IdClienteOrigen": 2,
+      "Documento": "1712345678",
+      "Nombre": "Juan",
+      "Apellido": "Perez",
+      "Correo": null,
+      "Telefono": null,
+      "Direccion": null,
+      "Ciudad": null,
+      "FechaNacimientoTexto": "12/04/1995",
+      "FechaRegistroTexto": null,
+      "EstadoTexto": "A"
+    },
+    {
+      "IdClienteOrigen": 3,
+      "Documento": "0912345678",
+      "Nombre": "Maria de los Angeles",
+      "Apellido": "Vera",
+      "Correo": "maria.vera@correo.com",
+      "Telefono": "0987654321",
+      "Direccion": "Calle Falsa 123",
+      "Ciudad": "Guayaquil",
+      "FechaNacimientoTexto": "2030-01-01",
+      "FechaRegistroTexto": "2024-02-01",
+      "EstadoTexto": "1"
+    },
+    {
+      "IdClienteOrigen": 4,
+      "Documento": "0923456789",
+      "Nombre": "Pedro",
+      "Apellido": "Ramirez",
+      "Correo": "pedro.ramirezcorreo.com",
+      "Telefono": "093-12",
+      "Direccion": "Sin direccion",
+      "Ciudad": "Cuenca",
+      "FechaNacimientoTexto": "sin fecha",
+      "FechaRegistroTexto": "2024/03/05",
+      "EstadoTexto": "inactivo"
+    }
+  ],
+  "productos": [
+    {
+      "IdProductoOrigen": 1,
+      "CodigoProducto": " abc-100 ",
+      "NombreProducto": "Laptop HP 15",
+      "CategoriaTexto": "Tecnologia",
+      "Precio": 750.5,
+      "EstadoTexto": "ACTIVO"
+    },
+    {
+      "IdProductoOrigen": 2,
+      "CodigoProducto": "ABC-100",
+      "NombreProducto": null,
+      "CategoriaTexto": null,
+      "Precio": 750.5,
+      "EstadoTexto": "1"
+    }
+  ],
+  "facturas": [
+    {
+      "IdFacturaOrigen": 1,
+      "NumeroFactura": "F-001",
+      "IdClienteOrigen": 1,
+      "FechaEmisionTexto": "2024-05-01",
+      "EstadoTexto": "ACTIVO",
+      "Subtotal": 100.0,
+      "IVA": 12.0,
+      "Total": 112.0
+    },
+    {
+      "IdFacturaOrigen": 2,
+      "NumeroFactura": "F-002",
+      "IdClienteOrigen": 2,
+      "FechaEmisionTexto": "2024-05-02",
+      "EstadoTexto": "ACTIVO",
+      "Subtotal": 100.0,
+      "IVA": 12.0,
+      "Total": 999.0
+    }
+  ],
+  "detalles": [
+    {
+      "IdDetalleOrigen": 1,
+      "IdFacturaOrigen": 1,
+      "IdProductoOrigen": 1,
+      "Cantidad": 2,
+      "PrecioUnitario": 50.0,
+      "Descuento": 0,
+      "TotalLinea": 100.0
+    },
+    {
+      "IdDetalleOrigen": 2,
+      "IdFacturaOrigen": 2,
+      "IdProductoOrigen": 2,
+      "Cantidad": 3,
+      "PrecioUnitario": 50.0,
+      "Descuento": 0,
+      "TotalLinea": 500.0
+    }
+  ]
+}
