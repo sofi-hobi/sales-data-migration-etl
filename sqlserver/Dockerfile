@@ -1,13 +1,16 @@
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
 USER root
-RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY scripts.sql /usr/src/app/
-COPY entrypoint.sh /usr/src/app/
+COPY sqlserver/entrypoint.sh /usr/src/app/entrypoint.sh
+COPY sqlserver/scripts.sql /usr/src/app/scripts.sql
+COPY sql/source_schema /usr/src/app/source_schema
+COPY data/source /usr/src/app/data
 
-RUN chmod +x /usr/src/app/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/src/app/entrypoint.sh \
+    && chmod +x /usr/src/app/entrypoint.sh \
+    && chown -R mssql:root /usr/src/app
 
 USER mssql
 
