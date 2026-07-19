@@ -89,7 +89,6 @@ def ejecutar_transformacion(datos_crudos):
         clientes_limpios=sobrevivientes_clientes,
         facturas_limpias=facturas_finales,
         detalles_limpios=detalles_finales,
-        productos_crudos=productos_crudos,
     )
 
     return {

@@ -11,10 +11,8 @@ from transform.validation import (
     detectar_inconsistencias_detalle,
     detectar_inconsistencias_factura,
     generar_lista_errores,
-    validar_codigo_producto,
     validar_correo,
     validar_documento,
-    validar_precio_producto,
     validar_telefono,
 )
 
@@ -50,47 +48,6 @@ class TestValidarDocumento(unittest.TestCase):
 
     def test_documento_nulo_genera_error(self):
         self.assertIsNotNone(validar_documento(1, None))
-
-
-class TestValidarCodigoProducto(unittest.TestCase):
-    def test_codigo_valido_no_genera_error(self):
-        self.assertIsNone(validar_codigo_producto(1, "SKU-001"))
-
-    def test_codigo_nulo_genera_error(self):
-        error = validar_codigo_producto(1, None)
-        self.assertIsNotNone(error)
-        self.assertEqual(error["entidad"], "producto")
-        self.assertEqual(error["campo"], "codigo_producto")
-
-    def test_codigo_vacio_genera_error(self):
-        error = validar_codigo_producto(1, "   ")
-        self.assertIsNotNone(error)
-        self.assertIn("vacio", error["motivo"])
-
-
-class TestValidarPrecioProducto(unittest.TestCase):
-    def test_precio_valido_no_genera_error(self):
-        self.assertIsNone(validar_precio_producto(1, 25.5))
-
-    def test_precio_nulo_genera_error(self):
-        error = validar_precio_producto(1, None)
-        self.assertIsNotNone(error)
-        self.assertIn("vacio", error["motivo"])
-
-    def test_precio_negativo_genera_error(self):
-        error = validar_precio_producto(1, -10)
-        self.assertIsNotNone(error)
-        self.assertIn("negativo", error["motivo"])
-
-    def test_precio_cero_genera_error(self):
-        error = validar_precio_producto(1, 0)
-        self.assertIsNotNone(error)
-        self.assertIn("cero", error["motivo"])
-
-    def test_precio_no_numerico_genera_error(self):
-        error = validar_precio_producto(1, "no-es-numero")
-        self.assertIsNotNone(error)
-        self.assertIn("no es un numero", error["motivo"])
 
 
 class TestDetectarInconsistenciasCliente(unittest.TestCase):
@@ -166,22 +123,6 @@ class TestGenerarListaErrores(unittest.TestCase):
         campos = {e["campo"] for e in errores}
         self.assertIn("correo", campos)
         self.assertIn("fecha_nacimiento", campos)
-
-    def test_incluye_validaciones_de_producto(self):
-        clientes_crudos = [
-            {"IdClienteOrigen": 1, "Correo": "juan@x.com", "Telefono": "0991234567", "Documento": "1712345678"},
-        ]
-        clientes_limpios = [{"id_cliente_origen": 1, "fecha_nacimiento": None, "fecha_registro": None}]
-        productos_crudos = [
-            {"IdProductoOrigen": 1, "CodigoProducto": "", "Precio": -5},
-        ]
-        errores = generar_lista_errores(
-            clientes_crudos, clientes_limpios, productos_crudos=productos_crudos,
-        )
-        errores_producto = [e for e in errores if e["entidad"] == "producto"]
-        campos = {e["campo"] for e in errores_producto}
-        self.assertIn("codigo_producto", campos)
-        self.assertIn("precio", campos)
 
 
 if __name__ == "__main__":

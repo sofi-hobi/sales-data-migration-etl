@@ -31,10 +31,8 @@ from .validation import (
     detectar_inconsistencias_detalle,
     detectar_inconsistencias_factura,
     generar_lista_errores,
-    validar_codigo_producto,
     validar_correo,
     validar_documento,
-    validar_precio_producto,
     validar_telefono,
 )
 
@@ -61,10 +59,8 @@ __all__ = [
     "detectar_inconsistencias_detalle",
     "detectar_inconsistencias_factura",
     "generar_lista_errores",
-    "validar_codigo_producto",
     "validar_correo",
     "validar_documento",
-    "validar_precio_producto",
     "validar_telefono",
     "ejecutar_transformacion",
 ]
