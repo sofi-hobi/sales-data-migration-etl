@@ -32,8 +32,18 @@ class SQLServerExtractor:
             raise RuntimeError(f"Error crítico al extraer datos de SQL Server: {e}")
 
     def extraer_clientes(self) -> List[Dict[str, Any]]:
-        """Lee la tabla completa ClienteOrigen con la data cruda."""
-        query = "SELECT IdClienteOrigen, Nombre, Apellido, Correo FROM SmartCleanOrigen.dbo.ClienteOrigen;"
+        """Lee la tabla completa ClienteOrigen con la data cruda.
+
+        IMPORTANTE: trae TODAS las columnas que necesita la etapa de
+        Transform (src/transform/cleansing.py::limpiar_cliente), no solo
+        Nombre/Apellido/Correo. Ver src/extract/extract_queries.sql.
+        """
+        query = """
+        SELECT IdClienteOrigen, Documento, Nombre, Apellido, Correo, Telefono,
+               Direccion, Ciudad, FechaNacimientoTexto, FechaRegistroTexto,
+               EstadoTexto, FechaCreacionSistema, FechaActualizacion
+        FROM SmartCleanOrigen.dbo.ClienteOrigen;
+        """
         return self._ejecutar_consulta(query)
 
     def extraer_productos(self) -> List[Dict[str, Any]]:

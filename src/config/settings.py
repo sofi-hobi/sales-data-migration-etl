@@ -24,6 +24,11 @@ class SqlServerConfig:
             "TrustServerCertificate=yes;"
         )
 
+    def get_pyodbc_connection_string(self) -> str:
+        """Alias explicito para src/extract/sqlserver_connector.py, que arma
+        la conexion via pyodbc.connect(...) usando este string."""
+        return self.odbc_connection_string
+
 
 @dataclass(frozen=True)
 class PostgresConfig:
@@ -67,6 +72,22 @@ def get_postgres_config() -> PostgresConfig:
         database=_env("POSTGRES_DB", "etl_destino"),
         user=_env("POSTGRES_USER", "etl_user"),
         password=_env("POSTGRES_PASSWORD", "Grupo1_PG!"),
+    )
+
+
+@dataclass(frozen=True)
+class Settings:
+    """Agrupa toda la configuracion del pipeline bajo un unico objeto,
+    para que extract/load solo necesiten `get_settings().sqlserver` o
+    `get_settings().postgres` en vez de llamar cada get_*_config() suelto."""
+    sqlserver: SqlServerConfig
+    postgres: PostgresConfig
+
+
+def get_settings() -> Settings:
+    return Settings(
+        sqlserver=get_sqlserver_config(),
+        postgres=get_postgres_config(),
     )
 
 
