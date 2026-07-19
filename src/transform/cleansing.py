@@ -9,6 +9,7 @@ EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _FECHA_FORMATOS = ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d")
 _ESTADOS_ACTIVOS = {"ACTIVO", "A", "1", "TRUE", "SI"}
 _ESTADOS_INACTIVOS = {"INACTIVO", "I", "0", "FALSE", "NO"}
+_CONECTORES_NOMBRE = {"de", "del", "la", "las", "los", "y"}
 
 
 def limpiar_texto(valor):
@@ -16,6 +17,22 @@ def limpiar_texto(valor):
         return None
     texto = " ".join(valor.strip().split())
     return texto or None
+
+
+def normalizar_nombre(valor):
+    """Normaliza nombres/apellidos de personas: colapsa espacios (via
+    limpiar_texto) y aplica capitalizacion tipo 'Juan Perez', respetando
+    conectores comunes en español ('de', 'del', 'la', 'las', 'los', 'y')
+    que van en minuscula salvo que sean la primera palabra."""
+    texto = limpiar_texto(valor)
+    if texto is None:
+        return None
+    palabras = texto.lower().split(" ")
+    normalizado = " ".join(
+        palabra if (palabra in _CONECTORES_NOMBRE and indice != 0) else palabra.capitalize()
+        for indice, palabra in enumerate(palabras)
+    )
+    return normalizado
 
 
 def limpiar_documento(valor):
@@ -68,8 +85,8 @@ def limpiar_cliente(crudo):
     return {
         "id_cliente_origen": crudo["IdClienteOrigen"],
         "documento": limpiar_documento(crudo.get("Documento")),
-        "nombre": limpiar_texto(crudo.get("Nombre")),
-        "apellido": limpiar_texto(crudo.get("Apellido")),
+        "nombre": normalizar_nombre(crudo.get("Nombre")),
+        "apellido": normalizar_nombre(crudo.get("Apellido")),
         "correo": limpiar_correo(crudo.get("Correo")),
         "telefono": limpiar_telefono(crudo.get("Telefono")),
         "direccion": limpiar_texto(crudo.get("Direccion")),
