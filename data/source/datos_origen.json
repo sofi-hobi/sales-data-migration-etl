@@ -1,0 +1,1260 @@
+{
+  "clientes": [
+    {
+      "idClienteOrigen": 1,
+      "documento": " 1712345678 ",
+      "nombre": " Juan ",
+      "apellido": "P\u00e9rez",
+      "correo": "JUAN.PEREZ@GMAIL.COM ",
+      "telefono": "099-123-4567",
+      "direccion": " Av. Amazonas N34-120 ",
+      "ciudad": "Quito",
+      "fechaNacimiento": "1995-04-12",
+      "fechaRegistro": "2024-01-15",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 2,
+      "documento": "1712345678",
+      "nombre": "JUAN",
+      "apellido": "PEREZ IDROVO",
+      "correo": "juan.perez@gmail.com",
+      "telefono": "(099) 123 4567",
+      "direccion": "Av Amazonas N34 120",
+      "ciudad": " QUITO ",
+      "fechaNacimiento": "12/04/1995",
+      "fechaRegistro": "15/01/2024",
+      "estado": "activo"
+    },
+    {
+      "idClienteOrigen": 3,
+      "documento": null,
+      "nombre": "Jn",
+      "apellido": "Perez",
+      "correo": "juan.perez @gmail.com",
+      "telefono": "0991234567",
+      "direccion": null,
+      "ciudad": "quito",
+      "fechaNacimiento": "1995/04/12",
+      "fechaRegistro": "sin fecha",
+      "estado": "A"
+    },
+    {
+      "idClienteOrigen": 4,
+      "documento": "1711111111",
+      "nombre": " Mar\u00eda Fernanda ",
+      "apellido": "L\u00f3pez",
+      "correo": "maria.lopez@example.com",
+      "telefono": "098 555 0101",
+      "direccion": "Calle 10 y Loja",
+      "ciudad": "Guayaquil",
+      "fechaNacimiento": "1989-11-03",
+      "fechaRegistro": "2024-02-01",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 5,
+      "documento": "171-111-1111",
+      "nombre": "MARIA F.",
+      "apellido": "LOPEZ ",
+      "correo": " MARIA.LOPEZ@EXAMPLE.COM ",
+      "telefono": "0985550101",
+      "direccion": "Calle 10 y Loja ",
+      "ciudad": "GUAYAQUIL",
+      "fechaNacimiento": "03/11/1989",
+      "fechaRegistro": "01/02/2024",
+      "estado": "1"
+    },
+    {
+      "idClienteOrigen": 6,
+      "documento": "0923456789",
+      "nombre": "Carlos",
+      "apellido": "Andrade Mena",
+      "correo": "carlos.andrade@mail.com",
+      "telefono": "097-222-3344",
+      "direccion": "Av. 6 de Diciembre",
+      "ciudad": "Quito",
+      "fechaNacimiento": "1985-06-20",
+      "fechaRegistro": "2024-03-10",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 7,
+      "documento": "0923456789 ",
+      "nombre": "C.",
+      "apellido": "Andrade",
+      "correo": "c.andrade@mail.com",
+      "telefono": "0972223344",
+      "direccion": "Av 6 Diciembre",
+      "ciudad": "quito",
+      "fechaNacimiento": "20/06/1985",
+      "fechaRegistro": "10/03/2024",
+      "estado": "ACT"
+    },
+    {
+      "idClienteOrigen": 8,
+      "documento": null,
+      "nombre": "Ana",
+      "apellido": "Torres",
+      "correo": "ana.torres@mail.com",
+      "telefono": "096-444-7788",
+      "direccion": "Sector El Condado",
+      "ciudad": "Quito",
+      "fechaNacimiento": "1998-02-28",
+      "fechaRegistro": "2024-04-05",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 9,
+      "documento": "1722222222",
+      "nombre": "Ana Mar\u00eda",
+      "apellido": "Torres V.",
+      "correo": "ana.torres+ventas@mail.com",
+      "telefono": "0964447788",
+      "direccion": "El Condado",
+      "ciudad": "QUITO",
+      "fechaNacimiento": "28/02/1998",
+      "fechaRegistro": "05/04/2024",
+      "estado": "Activo"
+    },
+    {
+      "idClienteOrigen": 10,
+      "documento": "1103456789",
+      "nombre": "Diego",
+      "apellido": "Ruiz",
+      "correo": "DIEGO.RUIZ@MAIL.COM",
+      "telefono": "095-100-2000",
+      "direccion": "Centro",
+      "ciudad": "Loja",
+      "fechaNacimiento": "1991-09-09",
+      "fechaRegistro": "2024-05-01",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 11,
+      "documento": null,
+      "nombre": "Diego A.",
+      "apellido": "Ru\u00edz",
+      "correo": " diego.ruiz@mail.com ",
+      "telefono": "095100200",
+      "direccion": "Centro Loja",
+      "ciudad": "loja",
+      "fechaNacimiento": "09/09/1991",
+      "fechaRegistro": "2024/05/01",
+      "estado": "A"
+    },
+    {
+      "idClienteOrigen": 12,
+      "documento": "0601234567",
+      "nombre": "Sof\u00eda",
+      "apellido": "Mendoza",
+      "correo": "sofia.mendoza@mail.com",
+      "telefono": "0943332211",
+      "direccion": "Av. Unidad Nacional",
+      "ciudad": "Riobamba",
+      "fechaNacimiento": "2000-01-15",
+      "fechaRegistro": "2024-06-01",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 13,
+      "documento": "0702345678",
+      "nombre": "Pedro",
+      "apellido": "Vera",
+      "correo": "pedro.veramail.com",
+      "telefono": "093-12",
+      "direccion": "Machala centro",
+      "ciudad": "Machala",
+      "fechaNacimiento": "31/02/1990",
+      "fechaRegistro": "2024-06-15",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 14,
+      "documento": "1803456789",
+      "nombre": "Luisa",
+      "apellido": "Castro",
+      "correo": "luisa.castro@mail.com",
+      "telefono": null,
+      "direccion": "Ficoa",
+      "ciudad": "Ambato",
+      "fechaNacimiento": "1993-12-05",
+      "fechaRegistro": "15-06-2024",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 15,
+      "documento": "1004567890",
+      "nombre": "Jos\u00e9",
+      "apellido": "Ibarra",
+      "correo": "jose.ibarra@mail.com",
+      "telefono": "0927776655",
+      "direccion": "Los Ceibos",
+      "ciudad": "Ibarra",
+      "fechaNacimiento": "1987-07-22",
+      "fechaRegistro": "2024-07-01",
+      "estado": "INACTIVO"
+    },
+    {
+      "idClienteOrigen": 16,
+      "documento": "1305678901",
+      "nombre": "Valentina",
+      "apellido": "Cede\u00f1o",
+      "correo": "valentina.cedeno@mail.com",
+      "telefono": "091 888 9900",
+      "direccion": "Tarqui",
+      "ciudad": "Manta",
+      "fechaNacimiento": "2001-10-10",
+      "fechaRegistro": "2024-07-11",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 17,
+      "documento": "0106789012",
+      "nombre": "Miguel",
+      "apellido": "Paredes",
+      "correo": "",
+      "telefono": "0901112233",
+      "direccion": "El Vergel",
+      "ciudad": "Cuenca",
+      "fechaNacimiento": "1979-03-30",
+      "fechaRegistro": "2024-08-01",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 18,
+      "documento": "2307890123",
+      "nombre": "Camila",
+      "apellido": "Ortiz",
+      "correo": "camila.ortiz@mail.com",
+      "telefono": "09A1234567",
+      "direccion": "La Concordia",
+      "ciudad": "Santo Domingo",
+      "fechaNacimiento": "2002-05-18",
+      "fechaRegistro": "2024-08-18",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 19,
+      "documento": "0808901234",
+      "nombre": "Ricardo",
+      "apellido": "Qui\u00f1\u00f3nez",
+      "correo": "ricardo.q@mail.com",
+      "telefono": "0990001122",
+      "direccion": "Las Palmas",
+      "ciudad": "Esmeraldas",
+      "fechaNacimiento": "1983-08-08",
+      "fechaRegistro": "2024-09-01",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 20,
+      "documento": null,
+      "nombre": "Cliente",
+      "apellido": "Sin Documento",
+      "correo": null,
+      "telefono": null,
+      "direccion": null,
+      "ciudad": null,
+      "fechaNacimiento": "sin fecha",
+      "fechaRegistro": "2024-13-01",
+      "estado": null
+    }
+  ],
+  "productos": [
+    {
+      "idProductoOrigen": 101,
+      "codigo": "SC-001",
+      "nombre": "Detergente l\u00edquido 1L",
+      "categoria": "Limpieza general",
+      "precio": 3.5,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 102,
+      "codigo": "SC-002",
+      "nombre": "Desinfectante 1L",
+      "categoria": "Desinfecci\u00f3n",
+      "precio": 4.25,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 103,
+      "codigo": "SC-003",
+      "nombre": "Trapeador de microfibra",
+      "categoria": "Accesorios",
+      "precio": 12.9,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 104,
+      "codigo": "SC-004",
+      "nombre": "Escoba dom\u00e9stica",
+      "categoria": "Accesorios",
+      "precio": 8.75,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 105,
+      "codigo": "SC-005",
+      "nombre": "Guantes de limpieza",
+      "categoria": "Protecci\u00f3n",
+      "precio": 2.4,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 106,
+      "codigo": "SC-006",
+      "nombre": "Cloro 1L",
+      "categoria": "Desinfecci\u00f3n",
+      "precio": 2.95,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 107,
+      "codigo": "SC-007",
+      "nombre": "Fundas de basura x20",
+      "categoria": "Desechables",
+      "precio": 5.6,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 108,
+      "codigo": "SC-008",
+      "nombre": "Limpiavidrios 500ml",
+      "categoria": "Limpieza especializada",
+      "precio": 4.1,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 109,
+      "codigo": "SC-009",
+      "nombre": "Esponja multiuso",
+      "categoria": "Accesorios",
+      "precio": 1.3,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 110,
+      "codigo": "SC-010",
+      "nombre": "Jab\u00f3n l\u00edquido 500ml",
+      "categoria": "Higiene",
+      "precio": 2.2,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 111,
+      "codigo": "SC-011",
+      "nombre": "Balde pl\u00e1stico 12L",
+      "categoria": "Accesorios",
+      "precio": 9.5,
+      "estado": "ACTIVO"
+    },
+    {
+      "idProductoOrigen": 112,
+      "codigo": "SC-012",
+      "nombre": "Ambientador aerosol",
+      "categoria": "Ambientaci\u00f3n",
+      "precio": 3.8,
+      "estado": "ACTIVO"
+    }
+  ],
+  "facturas": [
+    {
+      "idFacturaOrigen": 1001,
+      "numeroFactura": "FAC-2025-0001",
+      "idClienteOrigen": 1,
+      "fechaEmision": "2025-01-04",
+      "estado": "PAGADA",
+      "subtotal": 39.85,
+      "iva": 5.98,
+      "total": 45.83
+    },
+    {
+      "idFacturaOrigen": 1002,
+      "numeroFactura": "FAC-2025-0002",
+      "idClienteOrigen": 1,
+      "fechaEmision": "2025-01-07",
+      "estado": "PAGADA",
+      "subtotal": 33.1,
+      "iva": 4.97,
+      "total": 38.07
+    },
+    {
+      "idFacturaOrigen": 1003,
+      "numeroFactura": "FAC-2025-0003",
+      "idClienteOrigen": 1,
+      "fechaEmision": "2025-01-10",
+      "estado": "PAGADA",
+      "subtotal": 31.6,
+      "iva": 4.74,
+      "total": 36.34
+    },
+    {
+      "idFacturaOrigen": 1004,
+      "numeroFactura": "FAC-2025-0004",
+      "idClienteOrigen": 2,
+      "fechaEmision": "2025-01-13",
+      "estado": "PAGADA",
+      "subtotal": 47.6,
+      "iva": 7.14,
+      "total": 54.74
+    },
+    {
+      "idFacturaOrigen": 1005,
+      "numeroFactura": "FAC-2025-0005",
+      "idClienteOrigen": 2,
+      "fechaEmision": "2025-01-16",
+      "estado": "PAGADA",
+      "subtotal": 40.85,
+      "iva": 6.13,
+      "total": 46.98
+    },
+    {
+      "idFacturaOrigen": 1006,
+      "numeroFactura": "FAC-2025-0006",
+      "idClienteOrigen": 2,
+      "fechaEmision": "2025-01-19",
+      "estado": "PENDIENTE",
+      "subtotal": 50.6,
+      "iva": 7.59,
+      "total": 58.19
+    },
+    {
+      "idFacturaOrigen": 1007,
+      "numeroFactura": "FAC-2025-0007",
+      "idClienteOrigen": 3,
+      "fechaEmision": "2025-01-22",
+      "estado": "PAGADA",
+      "subtotal": 54.05,
+      "iva": 8.11,
+      "total": 62.16
+    },
+    {
+      "idFacturaOrigen": 1008,
+      "numeroFactura": "FAC-2025-0008",
+      "idClienteOrigen": 3,
+      "fechaEmision": "31/02/2025",
+      "estado": "PAGADA",
+      "subtotal": 10.6,
+      "iva": 1.59,
+      "total": 12.19
+    },
+    {
+      "idFacturaOrigen": 1009,
+      "numeroFactura": "FAC-2025-0009",
+      "idClienteOrigen": 3,
+      "fechaEmision": "2025-01-28",
+      "estado": "PAGADA",
+      "subtotal": 17.8,
+      "iva": 2.67,
+      "total": 20.47
+    },
+    {
+      "idFacturaOrigen": 1010,
+      "numeroFactura": "FAC-2025-0010",
+      "idClienteOrigen": 4,
+      "fechaEmision": "2025-01-31",
+      "estado": "PAGADA",
+      "subtotal": 19.1,
+      "iva": 2.87,
+      "total": 21.97
+    },
+    {
+      "idFacturaOrigen": 1011,
+      "numeroFactura": "FAC-2025-0011",
+      "idClienteOrigen": 4,
+      "fechaEmision": "2025-02-03",
+      "estado": "PAGADA",
+      "subtotal": 42.25,
+      "iva": 6.34,
+      "total": 48.59
+    },
+    {
+      "idFacturaOrigen": 1012,
+      "numeroFactura": "FAC-2025-0012",
+      "idClienteOrigen": 5,
+      "fechaEmision": "2025-02-06",
+      "estado": "PENDIENTE",
+      "subtotal": 21.0,
+      "iva": 3.15,
+      "total": 24.15
+    },
+    {
+      "idFacturaOrigen": 1013,
+      "numeroFactura": "FAC-2025-0013",
+      "idClienteOrigen": 5,
+      "fechaEmision": "2025-02-09",
+      "estado": "PAGADA",
+      "subtotal": 34.15,
+      "iva": 5.12,
+      "total": 39.27
+    },
+    {
+      "idFacturaOrigen": 1014,
+      "numeroFactura": "FAC-2025-0014",
+      "idClienteOrigen": 6,
+      "fechaEmision": "2025-02-12",
+      "estado": "PAGADA",
+      "subtotal": 23.1,
+      "iva": 3.47,
+      "total": 26.57
+    },
+    {
+      "idFacturaOrigen": 1015,
+      "numeroFactura": "FAC-2025-0015",
+      "idClienteOrigen": 6,
+      "fechaEmision": "2025-02-15",
+      "estado": "PAGADA",
+      "subtotal": 24.6,
+      "iva": 3.69,
+      "total": 28.29
+    },
+    {
+      "idFacturaOrigen": 1016,
+      "numeroFactura": "FAC-2025-0016",
+      "idClienteOrigen": 7,
+      "fechaEmision": "2025-02-18",
+      "estado": "PAGADA",
+      "subtotal": 8.9,
+      "iva": 1.34,
+      "total": 10.24
+    },
+    {
+      "idFacturaOrigen": 1017,
+      "numeroFactura": "FAC-2025-0017",
+      "idClienteOrigen": 7,
+      "fechaEmision": "2025-13-01",
+      "estado": "PAGADA",
+      "subtotal": 31.75,
+      "iva": 4.76,
+      "total": 36.51
+    },
+    {
+      "idFacturaOrigen": 1018,
+      "numeroFactura": "FAC-2025-0018",
+      "idClienteOrigen": 8,
+      "fechaEmision": "2025-02-24",
+      "estado": "PENDIENTE",
+      "subtotal": 45.5,
+      "iva": 6.83,
+      "total": 52.33
+    },
+    {
+      "idFacturaOrigen": 1019,
+      "numeroFactura": "FAC-2025-0019",
+      "idClienteOrigen": 9,
+      "fechaEmision": "2025-02-27",
+      "estado": "PAGADA",
+      "subtotal": 54.55,
+      "iva": 8.18,
+      "total": 62.73
+    },
+    {
+      "idFacturaOrigen": 1020,
+      "numeroFactura": "FAC-2025-0020",
+      "idClienteOrigen": 9,
+      "fechaEmision": "2025-03-02",
+      "estado": "PAGADA",
+      "subtotal": 10.1,
+      "iva": 1.52,
+      "total": 11.62
+    },
+    {
+      "idFacturaOrigen": 1021,
+      "numeroFactura": "FAC-2025-0021",
+      "idClienteOrigen": 10,
+      "fechaEmision": "2025-03-05",
+      "estado": "PAGADA",
+      "subtotal": 17.3,
+      "iva": 2.6,
+      "total": 19.9
+    },
+    {
+      "idFacturaOrigen": 1022,
+      "numeroFactura": "FAC-2025-0022",
+      "idClienteOrigen": 11,
+      "fechaEmision": "2025-03-08",
+      "estado": "PAGADA",
+      "subtotal": 19.1,
+      "iva": 2.87,
+      "total": 21.97
+    },
+    {
+      "idFacturaOrigen": 1023,
+      "numeroFactura": "FAC-2025-0023",
+      "idClienteOrigen": 12,
+      "fechaEmision": "2025-03-11",
+      "estado": "PAGADA",
+      "subtotal": 42.25,
+      "iva": 6.34,
+      "total": 48.59
+    },
+    {
+      "idFacturaOrigen": 1024,
+      "numeroFactura": "FAC-2025-0024",
+      "idClienteOrigen": 13,
+      "fechaEmision": "2025-03-14",
+      "estado": "PENDIENTE",
+      "subtotal": 21.0,
+      "iva": 3.15,
+      "total": 24.15
+    },
+    {
+      "idFacturaOrigen": 1025,
+      "numeroFactura": "FAC-2025-0025",
+      "idClienteOrigen": 14,
+      "fechaEmision": "2025-03-17",
+      "estado": "PAGADA",
+      "subtotal": 34.65,
+      "iva": 5.2,
+      "total": 39.85
+    },
+    {
+      "idFacturaOrigen": 1026,
+      "numeroFactura": "FAC-2025-0026",
+      "idClienteOrigen": 15,
+      "fechaEmision": "sin fecha",
+      "estado": "PAGADA",
+      "subtotal": 23.6,
+      "iva": 3.54,
+      "total": 27.14
+    },
+    {
+      "idFacturaOrigen": 1027,
+      "numeroFactura": "FAC-2025-0027",
+      "idClienteOrigen": 16,
+      "fechaEmision": "2025-03-23",
+      "estado": "PAGADA",
+      "subtotal": 24.1,
+      "iva": 3.62,
+      "total": 27.72
+    },
+    {
+      "idFacturaOrigen": 1028,
+      "numeroFactura": "FAC-2025-0028",
+      "idClienteOrigen": 17,
+      "fechaEmision": "2025-03-26",
+      "estado": "PAGADA",
+      "subtotal": 8.4,
+      "iva": 1.26,
+      "total": 9.66
+    },
+    {
+      "idFacturaOrigen": 1029,
+      "numeroFactura": "FAC-2025-0029",
+      "idClienteOrigen": 18,
+      "fechaEmision": "2025-03-29",
+      "estado": "PAGADA",
+      "subtotal": 31.75,
+      "iva": 4.76,
+      "total": 36.51
+    },
+    {
+      "idFacturaOrigen": 1030,
+      "numeroFactura": "FAC-2025-0030",
+      "idClienteOrigen": 19,
+      "fechaEmision": "2025-04-01",
+      "estado": "PENDIENTE",
+      "subtotal": 45.5,
+      "iva": 6.83,
+      "total": 52.33
+    }
+  ],
+  "detalles": [
+    {
+      "idDetalleOrigen": 5001,
+      "idFacturaOrigen": 1001,
+      "idProductoOrigen": 103,
+      "cantidad": 2,
+      "precioUnitario": 12.9,
+      "descuento": 0.0,
+      "totalLinea": 25.8
+    },
+    {
+      "idDetalleOrigen": 5002,
+      "idFacturaOrigen": 1001,
+      "idProductoOrigen": 106,
+      "cantidad": 3,
+      "precioUnitario": 2.95,
+      "descuento": 0.0,
+      "totalLinea": 8.85
+    },
+    {
+      "idDetalleOrigen": 5003,
+      "idFacturaOrigen": 1001,
+      "idProductoOrigen": 109,
+      "cantidad": 4,
+      "precioUnitario": 1.3,
+      "descuento": 0.0,
+      "totalLinea": 5.2
+    },
+    {
+      "idDetalleOrigen": 5004,
+      "idFacturaOrigen": 1002,
+      "idProductoOrigen": 105,
+      "cantidad": 3,
+      "precioUnitario": 2.4,
+      "descuento": 0.0,
+      "totalLinea": 7.2
+    },
+    {
+      "idDetalleOrigen": 5005,
+      "idFacturaOrigen": 1002,
+      "idProductoOrigen": 108,
+      "cantidad": 4,
+      "precioUnitario": 4.1,
+      "descuento": 0.0,
+      "totalLinea": 16.4
+    },
+    {
+      "idDetalleOrigen": 5006,
+      "idFacturaOrigen": 1002,
+      "idProductoOrigen": 111,
+      "cantidad": 1,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 9.5
+    },
+    {
+      "idDetalleOrigen": 5007,
+      "idFacturaOrigen": 1003,
+      "idProductoOrigen": 107,
+      "cantidad": 4,
+      "precioUnitario": 5.6,
+      "descuento": 0.0,
+      "totalLinea": 22.4
+    },
+    {
+      "idDetalleOrigen": 5008,
+      "idFacturaOrigen": 1003,
+      "idProductoOrigen": 110,
+      "cantidad": 1,
+      "precioUnitario": 2.2,
+      "descuento": 0.0,
+      "totalLinea": 2.2
+    },
+    {
+      "idDetalleOrigen": 5009,
+      "idFacturaOrigen": 1003,
+      "idProductoOrigen": 101,
+      "cantidad": 2,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 7.0
+    },
+    {
+      "idDetalleOrigen": 5010,
+      "idFacturaOrigen": 1004,
+      "idProductoOrigen": 109,
+      "cantidad": 1,
+      "precioUnitario": 1.3,
+      "descuento": 0.0,
+      "totalLinea": 1.3
+    },
+    {
+      "idDetalleOrigen": 5011,
+      "idFacturaOrigen": 1004,
+      "idProductoOrigen": 112,
+      "cantidad": 2,
+      "precioUnitario": 3.8,
+      "descuento": 0.0,
+      "totalLinea": 7.6
+    },
+    {
+      "idDetalleOrigen": 5012,
+      "idFacturaOrigen": 1004,
+      "idProductoOrigen": 103,
+      "cantidad": 3,
+      "precioUnitario": 12.9,
+      "descuento": 0.0,
+      "totalLinea": 38.7
+    },
+    {
+      "idDetalleOrigen": 5013,
+      "idFacturaOrigen": 1005,
+      "idProductoOrigen": 111,
+      "cantidad": 2,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 19.0
+    },
+    {
+      "idDetalleOrigen": 5014,
+      "idFacturaOrigen": 1005,
+      "idProductoOrigen": 102,
+      "cantidad": 3,
+      "precioUnitario": 4.25,
+      "descuento": 0.0,
+      "totalLinea": 12.75
+    },
+    {
+      "idDetalleOrigen": 5015,
+      "idFacturaOrigen": 1005,
+      "idProductoOrigen": 105,
+      "cantidad": 4,
+      "precioUnitario": 2.4,
+      "descuento": 0.5,
+      "totalLinea": 9.1
+    },
+    {
+      "idDetalleOrigen": 5016,
+      "idFacturaOrigen": 1006,
+      "idProductoOrigen": 101,
+      "cantidad": 3,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 10.5
+    },
+    {
+      "idDetalleOrigen": 5017,
+      "idFacturaOrigen": 1006,
+      "idProductoOrigen": 104,
+      "cantidad": 4,
+      "precioUnitario": 8.75,
+      "descuento": 0.5,
+      "totalLinea": 34.5
+    },
+    {
+      "idDetalleOrigen": 5018,
+      "idFacturaOrigen": 1006,
+      "idProductoOrigen": 107,
+      "cantidad": 1,
+      "precioUnitario": 5.6,
+      "descuento": 0.0,
+      "totalLinea": 5.6
+    },
+    {
+      "idDetalleOrigen": 5019,
+      "idFacturaOrigen": 1007,
+      "idProductoOrigen": 103,
+      "cantidad": 4,
+      "precioUnitario": 12.9,
+      "descuento": 0.5,
+      "totalLinea": 51.1
+    },
+    {
+      "idDetalleOrigen": 5020,
+      "idFacturaOrigen": 1007,
+      "idProductoOrigen": 106,
+      "cantidad": 1,
+      "precioUnitario": 2.95,
+      "descuento": 0.0,
+      "totalLinea": 2.95
+    },
+    {
+      "idDetalleOrigen": 5021,
+      "idFacturaOrigen": 1008,
+      "idProductoOrigen": 105,
+      "cantidad": 1,
+      "precioUnitario": 2.4,
+      "descuento": 0.0,
+      "totalLinea": 2.4
+    },
+    {
+      "idDetalleOrigen": 5022,
+      "idFacturaOrigen": 1008,
+      "idProductoOrigen": 108,
+      "cantidad": 2,
+      "precioUnitario": 4.1,
+      "descuento": 0.0,
+      "totalLinea": 8.2
+    },
+    {
+      "idDetalleOrigen": 5023,
+      "idFacturaOrigen": 1009,
+      "idProductoOrigen": 107,
+      "cantidad": 2,
+      "precioUnitario": 5.6,
+      "descuento": 0.0,
+      "totalLinea": 11.2
+    },
+    {
+      "idDetalleOrigen": 5024,
+      "idFacturaOrigen": 1009,
+      "idProductoOrigen": 110,
+      "cantidad": 3,
+      "precioUnitario": 2.2,
+      "descuento": 0.0,
+      "totalLinea": 6.6
+    },
+    {
+      "idDetalleOrigen": 5025,
+      "idFacturaOrigen": 1010,
+      "idProductoOrigen": 109,
+      "cantidad": 3,
+      "precioUnitario": 1.3,
+      "descuento": 0.0,
+      "totalLinea": 3.9
+    },
+    {
+      "idDetalleOrigen": 5026,
+      "idFacturaOrigen": 1010,
+      "idProductoOrigen": 112,
+      "cantidad": 4,
+      "precioUnitario": 3.8,
+      "descuento": 0.0,
+      "totalLinea": 15.2
+    },
+    {
+      "idDetalleOrigen": 5027,
+      "idFacturaOrigen": 1011,
+      "idProductoOrigen": 111,
+      "cantidad": 4,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 38.0
+    },
+    {
+      "idDetalleOrigen": 5028,
+      "idFacturaOrigen": 1011,
+      "idProductoOrigen": 102,
+      "cantidad": 1,
+      "precioUnitario": 4.25,
+      "descuento": 0.0,
+      "totalLinea": 4.25
+    },
+    {
+      "idDetalleOrigen": 5029,
+      "idFacturaOrigen": 1012,
+      "idProductoOrigen": 101,
+      "cantidad": 1,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 3.5
+    },
+    {
+      "idDetalleOrigen": 5030,
+      "idFacturaOrigen": 1012,
+      "idProductoOrigen": 104,
+      "cantidad": 2,
+      "precioUnitario": 8.75,
+      "descuento": 0.0,
+      "totalLinea": 17.5
+    },
+    {
+      "idDetalleOrigen": 5031,
+      "idFacturaOrigen": 1013,
+      "idProductoOrigen": 103,
+      "cantidad": 2,
+      "precioUnitario": 12.9,
+      "descuento": 0.0,
+      "totalLinea": 25.8
+    },
+    {
+      "idDetalleOrigen": 5032,
+      "idFacturaOrigen": 1013,
+      "idProductoOrigen": 106,
+      "cantidad": 3,
+      "precioUnitario": 2.95,
+      "descuento": 0.5,
+      "totalLinea": 8.35
+    },
+    {
+      "idDetalleOrigen": 5033,
+      "idFacturaOrigen": 1014,
+      "idProductoOrigen": 105,
+      "cantidad": 3,
+      "precioUnitario": 2.4,
+      "descuento": 0.5,
+      "totalLinea": 6.7
+    },
+    {
+      "idDetalleOrigen": 5034,
+      "idFacturaOrigen": 1014,
+      "idProductoOrigen": 108,
+      "cantidad": 4,
+      "precioUnitario": 4.1,
+      "descuento": 0.0,
+      "totalLinea": 16.4
+    },
+    {
+      "idDetalleOrigen": 5035,
+      "idFacturaOrigen": 1015,
+      "idProductoOrigen": 107,
+      "cantidad": 4,
+      "precioUnitario": 5.6,
+      "descuento": 0.0,
+      "totalLinea": 22.4
+    },
+    {
+      "idDetalleOrigen": 5036,
+      "idFacturaOrigen": 1015,
+      "idProductoOrigen": 110,
+      "cantidad": 1,
+      "precioUnitario": 2.2,
+      "descuento": 0.0,
+      "totalLinea": 2.2
+    },
+    {
+      "idDetalleOrigen": 5037,
+      "idFacturaOrigen": 1016,
+      "idProductoOrigen": 109,
+      "cantidad": 1,
+      "precioUnitario": 1.3,
+      "descuento": 0.0,
+      "totalLinea": 1.3
+    },
+    {
+      "idDetalleOrigen": 5038,
+      "idFacturaOrigen": 1016,
+      "idProductoOrigen": 112,
+      "cantidad": 2,
+      "precioUnitario": 3.8,
+      "descuento": 0.0,
+      "totalLinea": 7.6
+    },
+    {
+      "idDetalleOrigen": 5039,
+      "idFacturaOrigen": 1017,
+      "idProductoOrigen": 111,
+      "cantidad": 2,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 19.0
+    },
+    {
+      "idDetalleOrigen": 5040,
+      "idFacturaOrigen": 1017,
+      "idProductoOrigen": 102,
+      "cantidad": 3,
+      "precioUnitario": 4.25,
+      "descuento": 0.0,
+      "totalLinea": 12.75
+    },
+    {
+      "idDetalleOrigen": 5041,
+      "idFacturaOrigen": 1018,
+      "idProductoOrigen": 101,
+      "cantidad": 3,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 10.5
+    },
+    {
+      "idDetalleOrigen": 5042,
+      "idFacturaOrigen": 1018,
+      "idProductoOrigen": 104,
+      "cantidad": 4,
+      "precioUnitario": 8.75,
+      "descuento": 0.0,
+      "totalLinea": 35.0
+    },
+    {
+      "idDetalleOrigen": 5043,
+      "idFacturaOrigen": 1019,
+      "idProductoOrigen": 103,
+      "cantidad": 4,
+      "precioUnitario": 12.9,
+      "descuento": 0.0,
+      "totalLinea": 51.6
+    },
+    {
+      "idDetalleOrigen": 5044,
+      "idFacturaOrigen": 1019,
+      "idProductoOrigen": 106,
+      "cantidad": 1,
+      "precioUnitario": 2.95,
+      "descuento": 0.0,
+      "totalLinea": 2.95
+    },
+    {
+      "idDetalleOrigen": 5045,
+      "idFacturaOrigen": 1020,
+      "idProductoOrigen": 105,
+      "cantidad": 1,
+      "precioUnitario": 2.4,
+      "descuento": 0.0,
+      "totalLinea": 2.4
+    },
+    {
+      "idDetalleOrigen": 5046,
+      "idFacturaOrigen": 1020,
+      "idProductoOrigen": 108,
+      "cantidad": 2,
+      "precioUnitario": 4.1,
+      "descuento": 0.5,
+      "totalLinea": 7.7
+    },
+    {
+      "idDetalleOrigen": 5047,
+      "idFacturaOrigen": 1021,
+      "idProductoOrigen": 107,
+      "cantidad": 2,
+      "precioUnitario": 5.6,
+      "descuento": 0.5,
+      "totalLinea": 10.7
+    },
+    {
+      "idDetalleOrigen": 5048,
+      "idFacturaOrigen": 1021,
+      "idProductoOrigen": 110,
+      "cantidad": 3,
+      "precioUnitario": 2.2,
+      "descuento": 0.0,
+      "totalLinea": 6.6
+    },
+    {
+      "idDetalleOrigen": 5049,
+      "idFacturaOrigen": 1022,
+      "idProductoOrigen": 109,
+      "cantidad": 3,
+      "precioUnitario": 1.3,
+      "descuento": 0.0,
+      "totalLinea": 3.9
+    },
+    {
+      "idDetalleOrigen": 5050,
+      "idFacturaOrigen": 1022,
+      "idProductoOrigen": 112,
+      "cantidad": 4,
+      "precioUnitario": 3.8,
+      "descuento": 0.0,
+      "totalLinea": 15.2
+    },
+    {
+      "idDetalleOrigen": 5051,
+      "idFacturaOrigen": 1023,
+      "idProductoOrigen": 111,
+      "cantidad": 4,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 38.0
+    },
+    {
+      "idDetalleOrigen": 5052,
+      "idFacturaOrigen": 1023,
+      "idProductoOrigen": 102,
+      "cantidad": 1,
+      "precioUnitario": 4.25,
+      "descuento": 0.0,
+      "totalLinea": 4.25
+    },
+    {
+      "idDetalleOrigen": 5053,
+      "idFacturaOrigen": 1024,
+      "idProductoOrigen": 101,
+      "cantidad": 1,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 3.5
+    },
+    {
+      "idDetalleOrigen": 5054,
+      "idFacturaOrigen": 1024,
+      "idProductoOrigen": 104,
+      "cantidad": 2,
+      "precioUnitario": 8.75,
+      "descuento": 0.0,
+      "totalLinea": 17.5
+    },
+    {
+      "idDetalleOrigen": 5055,
+      "idFacturaOrigen": 1025,
+      "idProductoOrigen": 103,
+      "cantidad": 2,
+      "precioUnitario": 12.9,
+      "descuento": 0.0,
+      "totalLinea": 25.8
+    },
+    {
+      "idDetalleOrigen": 5056,
+      "idFacturaOrigen": 1025,
+      "idProductoOrigen": 106,
+      "cantidad": 3,
+      "precioUnitario": 2.95,
+      "descuento": 0.0,
+      "totalLinea": 8.85
+    },
+    {
+      "idDetalleOrigen": 5057,
+      "idFacturaOrigen": 1026,
+      "idProductoOrigen": 105,
+      "cantidad": 3,
+      "precioUnitario": 2.4,
+      "descuento": 0.0,
+      "totalLinea": 7.2
+    },
+    {
+      "idDetalleOrigen": 5058,
+      "idFacturaOrigen": 1026,
+      "idProductoOrigen": 108,
+      "cantidad": 4,
+      "precioUnitario": 4.1,
+      "descuento": 0.0,
+      "totalLinea": 16.4
+    },
+    {
+      "idDetalleOrigen": 5059,
+      "idFacturaOrigen": 1027,
+      "idProductoOrigen": 107,
+      "cantidad": 4,
+      "precioUnitario": 5.6,
+      "descuento": 0.0,
+      "totalLinea": 22.4
+    },
+    {
+      "idDetalleOrigen": 5060,
+      "idFacturaOrigen": 1027,
+      "idProductoOrigen": 110,
+      "cantidad": 1,
+      "precioUnitario": 2.2,
+      "descuento": 0.5,
+      "totalLinea": 1.7
+    },
+    {
+      "idDetalleOrigen": 5061,
+      "idFacturaOrigen": 1028,
+      "idProductoOrigen": 109,
+      "cantidad": 1,
+      "precioUnitario": 1.3,
+      "descuento": 0.5,
+      "totalLinea": 0.8
+    },
+    {
+      "idDetalleOrigen": 5062,
+      "idFacturaOrigen": 1028,
+      "idProductoOrigen": 112,
+      "cantidad": 2,
+      "precioUnitario": 3.8,
+      "descuento": 0.0,
+      "totalLinea": 7.6
+    },
+    {
+      "idDetalleOrigen": 5063,
+      "idFacturaOrigen": 1029,
+      "idProductoOrigen": 111,
+      "cantidad": 2,
+      "precioUnitario": 9.5,
+      "descuento": 0.0,
+      "totalLinea": 19.0
+    },
+    {
+      "idDetalleOrigen": 5064,
+      "idFacturaOrigen": 1029,
+      "idProductoOrigen": 102,
+      "cantidad": 3,
+      "precioUnitario": 4.25,
+      "descuento": 0.0,
+      "totalLinea": 12.75
+    },
+    {
+      "idDetalleOrigen": 5065,
+      "idFacturaOrigen": 1030,
+      "idProductoOrigen": 101,
+      "cantidad": 3,
+      "precioUnitario": 3.5,
+      "descuento": 0.0,
+      "totalLinea": 10.5
+    },
+    {
+      "idDetalleOrigen": 5066,
+      "idFacturaOrigen": 1030,
+      "idProductoOrigen": 104,
+      "cantidad": 4,
+      "precioUnitario": 8.75,
+      "descuento": 0.0,
+      "totalLinea": 35.0
+    }
+  ]
+}
