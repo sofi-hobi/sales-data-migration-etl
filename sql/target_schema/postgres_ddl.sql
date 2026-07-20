@@ -9,7 +9,6 @@
 -- lleva el prefijo "001_" y debe ejecutarse ANTES que
 -- "002_audit_tables.sql".
 --
--- Integrante 4 - Etapa de Load
 -- ============================================================
 
 BEGIN;

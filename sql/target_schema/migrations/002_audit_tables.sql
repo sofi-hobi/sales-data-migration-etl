@@ -4,8 +4,7 @@
 -- Corre DESPUES de 001_postgres_ddl.sql (orden alfabetico dentro de
 -- /docker-entrypoint-initdb.d/), ya que no depende de las tablas de
 -- negocio pero conceptualmente documenta lo que paso al cargarlas.
---
--- Integrante 4 - Etapa de Load
+
 -- ============================================================
 
 BEGIN;

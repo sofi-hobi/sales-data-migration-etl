@@ -1,5 +1,5 @@
 # postgres_connector.py
-"""Etapa de Load (Integrante 4) del pipeline ETL.
+"""Etapa de load
 
 Recibe el diccionario que devuelve `ejecutar_transformacion` (Integrante 3)
 -> {"clientes": [...], "productos": [...], "facturas": [...],
