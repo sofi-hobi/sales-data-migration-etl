@@ -1,7 +1,7 @@
 {
   "clientes": [
     {
-      "idClienteOrigen": 900,
+      "idClienteOrigen": 9001,
       "documento": "9999999999",
       "nombre": "Cliente",
       "apellido": "Super Nuevo",
@@ -14,7 +14,7 @@
       "estado": "ACTIVO"
     },
     {
-      "idClienteOrigen": 901,
+      "idClienteOrigen": 9002,
       "documento": null,
       "nombre": "Cliente",
       "apellido": "Malo Demo",
@@ -29,7 +29,7 @@
   ],
   "productos": [
     {
-      "idProductoOrigen": 900,
+      "idProductoOrigen": 9001,
       "codigo": "PRD-LIVE-01",
       "nombre": "Producto Especial Live",
       "categoria": "SERVICIOS",
@@ -39,9 +39,9 @@
   ],
   "facturas": [
     {
-      "idFacturaOrigen": 9000,
-      "numeroFactura": "FAC-LIVE-001",
-      "idClienteOrigen": 900,
+      "idFacturaOrigen": 19001,
+      "numeroFactura": "FAC-LIVE-19001",
+      "idClienteOrigen": 9001,
       "fechaEmision": "2024-10-15",
       "estado": "PAGADA",
       "subtotal": 99.99,
@@ -49,9 +49,9 @@
       "total": 111.98
     },
     {
-      "idFacturaOrigen": 9001,
-      "numeroFactura": "FAC-LIVE-002",
-      "idClienteOrigen": 901,
+      "idFacturaOrigen": 19002,
+      "numeroFactura": "FAC-LIVE-19002",
+      "idClienteOrigen": 9002,
       "fechaEmision": "2024-10-15",
       "estado": "PAGADA",
       "subtotal": 99.99,
@@ -61,18 +61,18 @@
   ],
   "detalles": [
     {
-      "idDetalleOrigen": 90000,
-      "idFacturaOrigen": 9000,
-      "idProductoOrigen": 900,
+      "idDetalleOrigen": 29001,
+      "idFacturaOrigen": 19001,
+      "idProductoOrigen": 9001,
       "cantidad": 1,
       "precioUnitario": 99.99,
       "descuento": 0.0,
       "totalLinea": 99.99
     },
     {
-      "idDetalleOrigen": 90001,
-      "idFacturaOrigen": 9001,
-      "idProductoOrigen": 900,
+      "idDetalleOrigen": 29002,
+      "idFacturaOrigen": 19002,
+      "idProductoOrigen": 9001,
       "cantidad": 1,
       "precioUnitario": 99.99,
       "descuento": 0.0,

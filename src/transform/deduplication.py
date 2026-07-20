@@ -36,12 +36,14 @@ def agrupar_duplicados_clientes(clientes_limpios):
     ids = [c["id_cliente_origen"] for c in clientes_limpios]
     uf = UnionFind(ids)
 
-    por_documento, por_correo = {}, {}
+    por_documento, por_correo, por_telefono = {}, {}, {}
     for cliente in clientes_limpios:
         _indexar(por_documento, cliente["documento"], cliente["id_cliente_origen"])
         _indexar(por_correo, cliente["correo"], cliente["id_cliente_origen"])
+        telefono = cliente.get("telefono")
+        _indexar(por_telefono, telefono if telefono and len(telefono) >= 10 else None, cliente["id_cliente_origen"])
 
-    for indice in (por_documento, por_correo):
+    for indice in (por_documento, por_correo, por_telefono):
         for ids_coincidentes in indice.values():
             for otro in ids_coincidentes[1:]:
                 uf.unir(ids_coincidentes[0], otro)
@@ -55,7 +57,7 @@ def agrupar_duplicados_productos(productos_limpios):
 
     por_codigo = {}
     for producto in productos_limpios:
-        codigo = (producto["codigo_producto"] or "").upper() or None
+        codigo = (producto["codigo_producto"] or "").strip().upper() or None
         _indexar(por_codigo, codigo, producto["id_producto_origen"])
 
     for ids_coincidentes in por_codigo.values():

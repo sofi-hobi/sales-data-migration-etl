@@ -21,7 +21,7 @@ class SqlServerConfig:
             f"SERVER={self.host},{self.port};"
             f"DATABASE={self.database};"
             f"UID={self.user};PWD={self.password};"
-            "TrustServerCertificate=yes;"
+            "TrustServerCertificate=yes;Connection Timeout=30;"
         )
 
     def get_pyodbc_connection_string(self) -> str:

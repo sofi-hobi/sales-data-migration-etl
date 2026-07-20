@@ -200,6 +200,7 @@ class PostgresLoader:
             return resultado
         except psycopg2.Error:
             cur.execute("ROLLBACK TO SAVEPOINT sp_fila")
+            cur.execute("RELEASE SAVEPOINT sp_fila")
             raise
 
     def _registrar_error(self, cur, tabla: str, identificador: Any, mensaje: str, registro: dict) -> None:
@@ -219,6 +220,7 @@ class PostgresLoader:
             cur.execute("RELEASE SAVEPOINT sp_error")
         except psycopg2.Error as exc:
             cur.execute("ROLLBACK TO SAVEPOINT sp_error")
+            cur.execute("RELEASE SAVEPOINT sp_error")
             logger.error("No se pudo registrar el error de carga en la BD: %s", exc)
 
     # ---------------------------------------------------------
@@ -245,7 +247,8 @@ class PostgresLoader:
             try:
                 nuevo_id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
-                mapa_ids[id_origen] = nuevo_id
+                for id_grupo in c.get("ids_origen_grupo", [id_origen]):
+                    mapa_ids[id_grupo] = nuevo_id
             except psycopg2.Error as exc:
                 stats["con_error"] += 1
                 self._registrar_error(cur, "clientes", params.get("documento", id_origen), str(exc), c)
@@ -274,7 +277,8 @@ class PostgresLoader:
             try:
                 nuevo_id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
-                mapa_ids[id_origen] = nuevo_id
+                for id_grupo in p.get("ids_origen_grupo", [id_origen]):
+                    mapa_ids[id_grupo] = nuevo_id
             except psycopg2.Error as exc:
                 stats["con_error"] += 1
                 self._registrar_error(cur, "productos", params.get("codigo_producto", id_origen), str(exc), p)
@@ -381,6 +385,147 @@ class PostgresLoader:
         cur.close()
         return stats
 
+    def _cargar_mapeos_y_consolidaciones(self, clientes: list[dict], mapa_ids_clientes: dict) -> dict:
+        """Registra la trazabilidad de cada ID de origen y la auditoría de
+        los grupos que fueron consolidados en un cliente maestro."""
+        stats = _stats_vacio(sum(len(c.get("ids_origen_grupo", [])) for c in clientes))
+        cur = self.conn.cursor()
+        for cliente in clientes:
+            id_sobreviviente = cliente["id_cliente_origen_sobreviviente"]
+            id_cliente_pg = mapa_ids_clientes.get(id_sobreviviente)
+            if id_cliente_pg is None:
+                stats["con_error"] += len(cliente.get("ids_origen_grupo", []))
+                continue
+
+            for id_origen in cliente.get("ids_origen_grupo", [id_sobreviviente]):
+                cur.execute(
+                    self.queries["upsert_cliente_mapeo"],
+                    {
+                        "id_cliente_origen": id_origen,
+                        "id_cliente_sobreviviente": id_sobreviviente,
+                        "id_cliente": id_cliente_pg,
+                        "es_sobreviviente": id_origen == id_sobreviviente,
+                    },
+                )
+                stats["actualizados"] += 1
+
+            ids_grupo = cliente.get("ids_origen_grupo", [id_sobreviviente])
+            if len(ids_grupo) > 1:
+                cur.execute(
+                    self.queries["upsert_auditoria_consolidacion"],
+                    {
+                        "id_cliente_sobreviviente": id_sobreviviente,
+                        "id_cliente": id_cliente_pg,
+                        "ids_origen_grupo": json.dumps(ids_grupo),
+                        "cantidad_registros": len(ids_grupo),
+                        "datos_maestro": json.dumps(cliente, default=str, ensure_ascii=False),
+                    },
+                )
+        self.conn.commit()
+        cur.close()
+        return stats
+
+    def _cargar_errores_transformacion(self, errores: list[dict]) -> dict:
+        """Persiste los problemas de calidad detectados durante Transform.
+        Son datos auditables, no fallos técnicos de la carga."""
+        stats = _stats_vacio(len(errores))
+        cur = self.conn.cursor()
+        for error in errores:
+            try:
+                cur.execute("SAVEPOINT sp_error_transformacion")
+                cur.execute(
+                    self.queries["upsert_error_transformacion"],
+                    {
+                        "entidad": error.get("entidad", "desconocida"),
+                        "id_origen": error.get("id_origen"),
+                        "campo": error.get("campo", "desconocido"),
+                        "valor_original": None if error.get("valor_original") is None else str(error.get("valor_original")),
+                        "motivo": error.get("motivo", "Sin detalle"),
+                    },
+                )
+                cur.execute("RELEASE SAVEPOINT sp_error_transformacion")
+                stats["actualizados"] += 1
+            except psycopg2.Error as exc:
+                cur.execute("ROLLBACK TO SAVEPOINT sp_error_transformacion")
+                cur.execute("RELEASE SAVEPOINT sp_error_transformacion")
+                stats["con_error"] += 1
+                self._registrar_error(cur, "errores_transformacion", error.get("id_origen"), str(exc), error)
+        self.conn.commit()
+        cur.close()
+        return stats
+
+    def _validar_destino(self, resultado_transformado: dict) -> dict:
+        """Compara cantidades, total monetario e integridad referencial.
+        Registra cada comprobación y falla si una validación crítica no coincide."""
+        esperados = {
+            "clientes": len(resultado_transformado.get("clientes", [])),
+            "productos": len(resultado_transformado.get("productos", [])),
+            "facturas": len(resultado_transformado.get("facturas", [])),
+            "detalles": len(resultado_transformado.get("detalles", [])),
+        }
+        total_esperado = round(sum(float(f.get("total") or 0) for f in resultado_transformado.get("facturas", [])), 2)
+
+        cur = self.conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM clientes")
+        clientes = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM productos")
+        productos = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM facturas")
+        facturas = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM detalles")
+        detalles = cur.fetchone()[0]
+        cur.execute("SELECT COALESCE(SUM(total), 0) FROM facturas")
+        total_destino = round(float(cur.fetchone()[0]), 2)
+        cur.execute("SELECT COUNT(*) FROM facturas f LEFT JOIN clientes c ON c.id_cliente=f.id_cliente WHERE c.id_cliente IS NULL")
+        facturas_huerfanas = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM detalles d LEFT JOIN facturas f ON f.id_factura=d.id_factura WHERE f.id_factura IS NULL")
+        detalles_sin_factura = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM detalles d LEFT JOIN productos p ON p.id_producto=d.id_producto WHERE p.id_producto IS NULL")
+        detalles_sin_producto = cur.fetchone()[0]
+
+        valores = {
+            "clientes": clientes,
+            "productos": productos,
+            "facturas": facturas,
+            "detalles": detalles,
+        }
+        resultados = []
+        for nombre, esperado in esperados.items():
+            real = valores[nombre]
+            resultados.append((f"cantidad_{nombre}", esperado, real, esperado == real, "Comparación de cantidades"))
+        resultados.append(("total_facturado", total_esperado, total_destino, abs(total_esperado-total_destino) <= 0.01, "Comparación monetaria"))
+        resultados.extend([
+            ("facturas_sin_cliente", 0, facturas_huerfanas, facturas_huerfanas == 0, "Integridad FK cliente"),
+            ("detalles_sin_factura", 0, detalles_sin_factura, detalles_sin_factura == 0, "Integridad FK factura"),
+            ("detalles_sin_producto", 0, detalles_sin_producto, detalles_sin_producto == 0, "Integridad FK producto"),
+        ])
+
+        for nombre, origen, destino, correcto, detalle in resultados:
+            cur.execute(
+                self.queries["insertar_validacion"],
+                {
+                    "nombre_validacion": nombre,
+                    "valor_origen": origen,
+                    "valor_destino": destino,
+                    "es_correcto": correcto,
+                    "detalle": detalle,
+                },
+            )
+        self.conn.commit()
+        cur.close()
+
+        fallidas = [nombre for nombre, _o, _d, correcto, _detalle in resultados if not correcto]
+        if fallidas:
+            raise RuntimeError("Fallaron validaciones de destino: " + ", ".join(fallidas))
+
+        return {
+            "cantidades": valores,
+            "total_facturado": total_destino,
+            "facturas_sin_cliente": facturas_huerfanas,
+            "detalles_sin_factura": detalles_sin_factura,
+            "detalles_sin_producto": detalles_sin_producto,
+        }
+
     # ---------------------------------------------------------
     # Estadísticas de carga
     # ---------------------------------------------------------
@@ -458,10 +603,25 @@ class PostgresLoader:
         )
         stats_por_tabla["detalles"] = (stats_detalles, time.time() - t0)
 
+        t0 = time.time()
+        stats_mapeos = self._cargar_mapeos_y_consolidaciones(
+            resultado_transformado.get("clientes", []), mapa_ids_clientes
+        )
+        stats_por_tabla["mapeos_clientes"] = (stats_mapeos, time.time() - t0)
+
+        t0 = time.time()
+        stats_errores_transformacion = self._cargar_errores_transformacion(
+            resultado_transformado.get("errores", [])
+        )
+        stats_por_tabla["errores_transformacion"] = (stats_errores_transformacion, time.time() - t0)
+
         self._guardar_auditoria(stats_por_tabla)
+        validacion = self._validar_destino(resultado_transformado)
         self._mostrar_resumen(stats_por_tabla)
 
-        return {tabla: stats for tabla, (stats, _duracion) in stats_por_tabla.items()}
+        resumen = {tabla: stats for tabla, (stats, _duracion) in stats_por_tabla.items()}
+        resumen["validacion"] = validacion
+        return resumen
 
 
 # ----------------------------------------------------------------

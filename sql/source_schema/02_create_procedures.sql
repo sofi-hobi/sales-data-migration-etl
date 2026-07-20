@@ -158,8 +158,8 @@ BEGIN
         SELECT @FacturasLeidas = COUNT(*) FROM @Facturas;
         SELECT @DetallesLeidos = COUNT(*) FROM @Detalles;
 
-        IF @ClientesLeidos = 0
-            THROW 51001, N'El JSON no contiene clientes.', 1;
+        IF @Reiniciar = 1 AND @ClientesLeidos < 1000
+            THROW 51001, N'El JSON debe contener al menos 1000 clientes de origen.', 1;
         IF @ProductosLeidos = 0
             THROW 51002, N'El JSON no contiene productos.', 1;
 

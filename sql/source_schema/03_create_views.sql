@@ -82,20 +82,35 @@ GO
 
 CREATE OR ALTER VIEW dbo.vw_ClientesPotencialmenteDuplicados
 AS
-WITH Normalizados AS
+WITH Base AS
 (
     SELECT
         c.*,
         NULLIF(REPLACE(REPLACE(REPLACE(LOWER(LTRIM(RTRIM(c.Documento))), N' ', N''), N'-', N''), N'.', N''), N'') AS DocumentoNormalizado,
-        NULLIF(REPLACE(LOWER(LTRIM(RTRIM(c.Correo))), N' ', N''), N'') AS CorreoNormalizado,
+        NULLIF(REPLACE(LOWER(LTRIM(RTRIM(c.Correo))), N' ', N''), N'') AS CorreoLimpio,
         NULLIF(
             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
                 LOWER(LTRIM(RTRIM(c.Telefono))),
                 N' ', N''), N'-', N''), N'(', N''), N')', N''), N'+', N''), N'.', N''),
             N''
-        ) AS TelefonoNormalizado,
+        ) AS TelefonoLimpio,
         LOWER(LTRIM(RTRIM(CONCAT(c.Nombre, N' ', c.Apellido)))) AS NombreNormalizado
     FROM dbo.ClienteOrigen AS c
+),
+Normalizados AS
+(
+    SELECT
+        Base.*,
+        CASE
+            WHEN CorreoLimpio LIKE N'%_@_%._%' THEN CorreoLimpio
+            ELSE NULL
+        END AS CorreoNormalizado,
+        CASE
+            WHEN LEN(TelefonoLimpio) >= 10 AND TelefonoLimpio NOT LIKE N'%[^0-9]%'
+                THEN TelefonoLimpio
+            ELSE NULL
+        END AS TelefonoNormalizado
+    FROM Base
 )
 SELECT
     a.IdClienteOrigen AS IdClienteA,
@@ -136,8 +151,26 @@ INNER JOIN Normalizados AS b
 WHERE
        (a.DocumentoNormalizado IS NOT NULL AND a.DocumentoNormalizado = b.DocumentoNormalizado)
     OR (a.CorreoNormalizado IS NOT NULL AND a.CorreoNormalizado = b.CorreoNormalizado)
-    OR (a.TelefonoNormalizado IS NOT NULL AND a.TelefonoNormalizado = b.TelefonoNormalizado)
-    OR DIFFERENCE(a.NombreNormalizado, b.NombreNormalizado) >= 3;
+    OR (a.TelefonoNormalizado IS NOT NULL AND a.TelefonoNormalizado = b.TelefonoNormalizado);
+GO
+
+CREATE OR ALTER VIEW dbo.vw_IndicadoresCalidadOrigen
+AS
+SELECT
+    (SELECT COUNT(*) FROM dbo.ClienteOrigen) AS ClientesOrigen,
+    (SELECT COUNT(*) FROM dbo.vw_DatosInconsistentesCliente
+      WHERE CorreoInvalido = 1 OR TelefonoInvalido = 1 OR DocumentoInvalido = 1
+         OR FechaNacimientoInvalida = 1 OR FechaRegistroInvalida = 1) AS ClientesConInconsistencias,
+    (SELECT COUNT(*) FROM dbo.vw_ClientesPotencialmenteDuplicados
+      WHERE Clasificacion IN (N'DUPLICADO EXACTO', N'DUPLICADO PROBABLE')) AS ParesDuplicadosDetectados,
+    (SELECT COUNT(*) FROM
+        (
+            SELECT IdClienteA AS IdCliente FROM dbo.vw_ClientesPotencialmenteDuplicados
+            UNION
+            SELECT IdClienteB AS IdCliente FROM dbo.vw_ClientesPotencialmenteDuplicados
+        ) AS ClientesDuplicados
+    ) AS ClientesImplicados,
+    (SELECT COUNT(*) FROM dbo.CargaOrigenError) AS ErroresTecnicosCarga;
 GO
 
 CREATE OR ALTER VIEW dbo.vw_IntegridadOrigen

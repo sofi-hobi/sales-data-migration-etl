@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 from transform.deduplication import agrupar_duplicados_clientes, agrupar_duplicados_productos
 
 
-def _cliente(id_origen, documento=None, correo=None):
-    return {"id_cliente_origen": id_origen, "documento": documento, "correo": correo}
+def _cliente(id_origen, documento=None, correo=None, telefono=None):
+    return {"id_cliente_origen": id_origen, "documento": documento, "correo": correo, "telefono": telefono}
 
 
 def _producto(id_origen, codigo=None):
@@ -46,6 +46,19 @@ class TestAgruparDuplicadosClientes(unittest.TestCase):
         grupos = agrupar_duplicados_clientes(clientes)
         self.assertEqual(len(grupos), 1)
         self.assertEqual(sorted(grupos[0]), [1, 2, 3])
+
+    def test_agrupa_por_telefono_completo(self):
+        clientes = [
+            _cliente(1, documento="111", correo="a@x.com", telefono="0991234567"),
+            _cliente(2, documento="222", correo="b@x.com", telefono="0991234567"),
+        ]
+        grupos = agrupar_duplicados_clientes(clientes)
+        self.assertIn({1, 2}, [set(g) for g in grupos])
+
+    def test_no_agrupa_telefonos_incompletos_iguales(self):
+        clientes = [_cliente(1, telefono="090000"), _cliente(2, telefono="090000")]
+        grupos = agrupar_duplicados_clientes(clientes)
+        self.assertEqual(sorted(len(g) for g in grupos), [1, 1])
 
     def test_sin_documento_ni_correo_no_se_agrupan_entre_si(self):
         clientes = [_cliente(1), _cliente(2)]

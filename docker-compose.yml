@@ -1,7 +1,4 @@
 services:
-  # ---------------------------------------------------------------
-  # SQL Server (Origen) — Base SmartCleanOrigen con datos sucios
-  # ---------------------------------------------------------------
   sqlserver:
     build:
       context: .
@@ -14,20 +11,23 @@ services:
       MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Grupo1@BDD!}"
     volumes:
       - sqlserver_data:/var/opt/mssql
-      - ./sql/source_schema:/usr/src/app/source_schema
-      - ./data/source:/usr/src/app/data
+      - ./sql/source_schema:/usr/src/app/source_schema:ro
+      - ./data/source:/usr/src/app/data:ro
     networks:
       - etl_network
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1" ]
+      test:
+        - CMD-SHELL
+        - >-
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa
+          -P "$${MSSQL_SA_PASSWORD}" -C -b -d SmartCleanOrigen
+          -Q "SET NOCOUNT ON; IF OBJECT_ID(N'dbo.ClienteOrigen', N'U') IS NULL RAISERROR('Tabla origen no creada',16,1); IF (SELECT COUNT_BIG(*) FROM dbo.ClienteOrigen) < 1000 RAISERROR('Datos origen incompletos',16,1); SELECT 1;"
+          >/dev/null 2>&1 || exit 1
       interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      timeout: 8s
+      retries: 30
+      start_period: 60s
 
-  # ---------------------------------------------------------------
-  # PostgreSQL (Destino) — Base etl_destino con tablas limpias
-  # ---------------------------------------------------------------
   postgres:
     build:
       context: ./postgres
@@ -42,16 +42,12 @@ services:
     networks:
       - etl_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U etl_user -d etl_destino" ]
+      test: ["CMD-SHELL", "pg_isready -U etl_user -d etl_destino"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 20s
 
-  # ---------------------------------------------------------------
-  # Pipeline ETL (Extract → Transform → Load)
-  # Se ejecuta una vez y termina. Depende de que ambas BDs estén
-  # listas (healthy) antes de arrancar.
-  # ---------------------------------------------------------------
   etl_pipeline:
     build:
       context: .
@@ -62,7 +58,6 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # Dentro de la red Docker, los hosts son los nombres de servicio
       SQLSERVER_HOST: "sqlserver"
       SQLSERVER_PORT: "1433"
       SQLSERVER_DATABASE: "SmartCleanOrigen"
@@ -73,13 +68,11 @@ services:
       POSTGRES_DB: "etl_destino"
       POSTGRES_USER: "etl_user"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Grupo1_PG!}"
+      ETL_BATCH_SIZE: "500"
     networks:
       - etl_network
+    restart: "no"
 
-  # ---------------------------------------------------------------
-  # Web App (Presentación)
-  # Aplicación FastAPI que sirve una página web para comparar los datos.
-  # ---------------------------------------------------------------
   webapp:
     build:
       context: ./webapp
@@ -90,6 +83,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      etl_pipeline:
+        condition: service_completed_successfully
     environment:
       SQLSERVER_HOST: "sqlserver"
       SQLSERVER_PORT: "1433"
@@ -101,8 +96,15 @@ services:
       POSTGRES_DB: "etl_destino"
       POSTGRES_USER: "etl_user"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Grupo1_PG!}"
+      WEBAPP_ROW_LIMIT: "100"
     networks:
       - etl_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
 volumes:
   sqlserver_data:

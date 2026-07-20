@@ -2,26 +2,28 @@
 
 ## Alcance
 
-Este módulo crea la base `SmartCleanOrigen` con:
+La base `SmartCleanOrigen` contiene:
 
-- 20 clientes de origen.
-- 12 productos.
-- 30 facturas.
-- 66 detalles de factura.
-- Datos intencionalmente sucios: duplicados, espacios, mayúsculas inconsistentes,
-  correos inválidos, teléfonos incompletos y fechas no convertibles.
-- Procedimiento `dbo.sp_CargarDatosOrigenJson`.
-- Carga idempotente mediante `MERGE`.
-- `TRY/CATCH`, transacción, `COMMIT`, `ROLLBACK` y registro de errores.
-- Vistas de resumen, integridad, inconsistencias y duplicados probables.
+- **1.200 clientes de origen**.
+- 60 productos.
+- 1.206 facturas.
+- 2.412 detalles.
+- Total facturado: **120.011,78**.
+- Duplicados, espacios, mayúsculas inconsistentes, correos inválidos,
+  teléfonos incompletos, documentos nulos/formateados y fechas no convertibles.
 
-El grupo de Juan Pérez corresponde a los identificadores 1, 2 y 3. Entre los tres
-poseen nueve facturas, lo que permite demostrar posteriormente la consolidación
-sin pérdida del historial.
+El grupo de Juan Pérez corresponde a los IDs 1, 2 y 3. Sus nueve facturas permiten demostrar que la consolidación no pierde el historial.
+
+## Elementos académicos implementados
+
+- `dbo.sp_CargarDatosOrigenJson` con `OPENJSON`.
+- `TRY/CATCH`, `BEGIN TRANSACTION`, `COMMIT`, `ROLLBACK` y `THROW`.
+- Carga repetible con `MERGE`.
+- Registro técnico en `CargaOrigenLog` y `CargaOrigenError`.
+- Vistas de resumen, integridad, calidad y duplicados.
+- Índices sobre documentos, correos, teléfonos y claves foráneas.
 
 ## Ejecución
-
-Desde la raíz del repositorio:
 
 ```bash
 docker compose down -v
@@ -29,42 +31,30 @@ docker compose up -d --build sqlserver
 docker compose logs -f sqlserver
 ```
 
-Cuando aparezca `Base SmartCleanOrigen inicializada correctamente`, verificar:
+Cuando aparezca `Base SmartCleanOrigen inicializada correctamente`:
 
 ```bash
-docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd   -S localhost -U sa -P "Grupo1@BDD!" -C   -d SmartCleanOrigen   -Q "SELECT * FROM dbo.vw_ResumenBaseOrigen; SELECT * FROM dbo.vw_IntegridadOrigen;"
+docker compose exec sqlserver bash -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d SmartCleanOrigen -Q "SELECT * FROM dbo.vw_ResumenBaseOrigen; SELECT * FROM dbo.vw_IntegridadOrigen; SELECT * FROM dbo.vw_IndicadoresCalidadOrigen;"'
 ```
 
-Conexión desde Windows:
+## Conexiones
+
+Desde Windows:
 
 - Servidor: `localhost,1435`
 - Usuario: `sa`
-- Contraseña: `Grupo1@BDD!`
+- Contraseña: valor de `MSSQL_SA_PASSWORD`
 - Base: `SmartCleanOrigen`
 
-Conexión desde otro contenedor de Compose:
+Desde otro contenedor:
 
 - Host: `sqlserver`
 - Puerto: `1433`
-- Usuario: `sa`
-- Contraseña: la variable `MSSQL_SA_PASSWORD`
-- Base: `SmartCleanOrigen`
 
-## Reejecución
+## Regenerar el JSON
 
-El procedimiento usa `MERGE`, por lo que se puede ejecutar nuevamente sin
-duplicar claves. El script inicial usa `@Reiniciar = 1` para que cada creación
-del contenedor produzca un escenario determinista.
+```bash
+python data/generate_dirty_data.py
+```
 
-## Resultados esperados
-
-| Métrica | Valor |
-|---|---:|
-| Clientes | 20 |
-| Productos | 12 |
-| Facturas | 30 |
-| Detalles | 66 |
-| Total facturado | 1045.06 |
-| Facturas sin cliente | 0 |
-| Detalles sin factura | 0 |
-| Detalles sin producto | 0 |
+El generador es determinista y vuelve a producir las cantidades documentadas.

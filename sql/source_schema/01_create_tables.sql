@@ -7,12 +7,10 @@ GO
 IF DB_ID(N'$(DatabaseName)') IS NULL
 BEGIN
     PRINT N'Creando base de datos $(DatabaseName)...';
-    CREATE DATABASE [$(DatabaseName)];
+    EXEC(N'CREATE DATABASE [$(DatabaseName)]');
 END;
 GO
 
-ALTER DATABASE [$(DatabaseName)] SET RECOVERY SIMPLE;
-GO
 
 USE [$(DatabaseName)];
 GO

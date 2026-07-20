@@ -1,196 +1,180 @@
-# Sales Data Migration ETL — SQL Server → PostgreSQL
+# SmartClean Clientes — Migración SQL Server → PostgreSQL
 
-Pipeline ETL de migración heterogénea que extrae datos "sucios" desde SQL Server, los limpia/deduplica/fusiona en Python, y los carga en PostgreSQL.
+Proyecto ETL heterogéneo que extrae una base de ventas con datos sucios desde **SQL Server**, normaliza y consolida clientes/productos en **Python**, y carga el resultado limpio en **PostgreSQL**. Todo se ejecuta con Docker Compose y puede demostrarse en una aplicación web.
 
 ## Arquitectura
 
+```text
+JSON sucio → SQL Server (origen) → Extract → Transform → Load → PostgreSQL (destino)
+                                              ↓
+                                      auditoría y validaciones
+                                              ↓
+                                      Web http://localhost:8000
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐      ┌─────────────────┐
-│   SQL Server    │     │   Python ETL     │     │   PostgreSQL    │      │    Web App      │
-│  (Origen)       │────▶│                  │────▶│  (Destino)      │      │ (Demostración)  │
-│                 │     │  Extract         │     │                 │      │                 │
-│ SmartCleanOrigen│     │  Transform       │     │  etl_destino    │      │ UI con pestañas │
-│ - ClienteOrigen │     │  Load            │     │  - clientes     │      │ para comparar:  │
-│ - ProductoOrigen│     │                  │     │  - productos    │      │ SQL vs Postgres │
-│ - FacturaOrigen │     │  Limpieza        │     │  - facturas     │◀─────│                 │
-│ - DetalleOrigen │     │  Deduplicación   │     │  - detalles     │      │ (localhost:8000)│
-│                 │     │  Survivorship    │     │  - auditoría    │      │                 │
-│ (datos sucios)  │     │  Validación      │     │  (datos limpios)│      │                 │
-└─────────────────┘     └──────────────────┘     └─────────────────┘      └─────────────────┘
-```
+
+El flujo respeta la distribución del documento del grupo: origen SQL Server, extracción sin modificar datos, transformación, carga PostgreSQL e integración con Docker. 
+
+## Datos incluidos
+
+| Métrica | Origen SQL Server | Destino PostgreSQL |
+|---|---:|---:|
+| Clientes | **1.200** | **1.098 maestros** |
+| Productos | 60 | 55 maestros |
+| Facturas | 1.206 | 1.206 |
+| Detalles | 2.412 | 2.412 |
+| Total facturado | 120.011,78 | 120.011,78 |
+
+Se incluyen **101 grupos de clientes duplicados** y 102 registros que se consolidan. Los clientes 1, 2 y 3 representan a Juan Pérez; sus nueve facturas se reasignan al mismo cliente maestro sin perder historial.
 
 ## Requisitos
 
-- Docker y Docker Compose v2+
+- Docker Desktop con el motor WSL 2 activo.
+- Docker Compose v2 o superior.
+- Puertos libres: `1435`, `5432` y `8000`.
 
-## Inicio rápido y Manejo de Docker
+## Ejecución limpia
 
-Debido a que SQL Server inicializa su base de datos desde cero usando scripts, **siempre debes limpiar los volúmenes antiguos** antes de levantar el proyecto. Si no lo haces, SQL Server fallará intentando recuperar la base de datos vieja.
+Desde la raíz del proyecto:
 
 ```bash
-# 1. (Opcional) Crear archivo .env si no existe
 cp .env.example .env
-
-# 2. Detener contenedores y LIMPIAR volúmenes (¡Obligatorio para reiniciar!)
 docker compose down -v
-
-# 3. Levantar todos los servicios en segundo plano
 docker compose up -d --build
 ```
 
-Una vez levantado:
+La primera construcción puede tardar porque descarga SQL Server, PostgreSQL, Python y el driver ODBC.
 
-- El **Pipeline ETL** se ejecutará automáticamente para limpiar y migrar los datos.
-- Puedes ver la **Página Web de Demostración** entrando a: 👉 **<http://localhost:8000>**
-
-Para detener el proyecto al terminar:
+Verifica el estado:
 
 ```bash
-docker compose down
+docker compose ps -a
 ```
 
-## Verificar resultados
+Resultado normal:
+
+- `sqlserver`: `healthy`
+- `postgres`: `healthy`
+- `etl_pipeline`: `Exited (0)`
+- `webapp`: `healthy` o `running`
+
+Abre la demostración:
+
+```text
+http://localhost:8000
+```
+
+La web muestra las cantidades totales y una muestra de 100 filas por tabla para evitar cargar miles de registros en el navegador.
+
+## Verificaciones rápidas
+
+### SQL Server
 
 ```bash
-# Ver las tablas cargadas en PostgreSQL
+docker compose exec sqlserver bash -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d SmartCleanOrigen -Q "SELECT * FROM dbo.vw_ResumenBaseOrigen; SELECT * FROM dbo.vw_IntegridadOrigen; SELECT * FROM dbo.vw_IndicadoresCalidadOrigen;"'
+```
+
+### PostgreSQL
+
+```bash
 docker compose exec postgres psql -U etl_user -d etl_destino -c "
-  SELECT 'clientes' AS tabla, count(*) FROM clientes
-  UNION ALL SELECT 'productos', count(*) FROM productos
-  UNION ALL SELECT 'facturas', count(*) FROM facturas
-  UNION ALL SELECT 'detalles', count(*) FROM detalles;
+SELECT 'clientes' tabla, COUNT(*) cantidad FROM clientes
+UNION ALL SELECT 'productos', COUNT(*) FROM productos
+UNION ALL SELECT 'facturas', COUNT(*) FROM facturas
+UNION ALL SELECT 'detalles', COUNT(*) FROM detalles;
 "
+```
 
-# Ver estadísticas de la carga
+Auditoría y trazabilidad:
+
+```bash
 docker compose exec postgres psql -U etl_user -d etl_destino -c "
-  SELECT * FROM etl_carga_auditoria ORDER BY id_carga;
+SELECT COUNT(*) AS mapeos FROM cliente_origen_mapeo;
+SELECT COUNT(*) AS grupos_consolidados FROM auditoria_consolidacion;
+SELECT COUNT(*) AS errores_calidad FROM etl_transformacion_errores;
+SELECT * FROM etl_validacion_resultado ORDER BY id_validacion DESC LIMIT 10;
 "
-
-# Verificar datos en SQL Server de origen
-docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P "Grupo1@BDD!" -C \
-  -d SmartCleanOrigen \
-  -Q "SELECT * FROM dbo.vw_ResumenBaseOrigen;"
 ```
 
-## Estructura del proyecto
+## Reejecución sin duplicar
 
-```
-sales-data-migration-etl/
-├── docker-compose.yml          # Orquesta los 4 servicios
-├── Dockerfile                  # Imagen del pipeline ETL (Python + ODBC)
-├── requirements.txt            # Dependencias Python del pipeline
-├── .env.example                # Variables de entorno de ejemplo
-│
-├── webapp/                     # Web App interactiva de demostración
-│   ├── main.py                 # Backend FastAPI
-│   ├── requirements.txt        # Dependencias web
-│   ├── Dockerfile
-│   └── static/
-│       └── index.html          # Interfaz UI con glassmorphism
-├── sqlserver/                  # Contenedor SQL Server (origen)
-│   ├── Dockerfile
-│   ├── entrypoint.sh           # Espera SQL Server → ejecuta scripts
-│   └── scripts.sql             # Orquesta la ejecución de source_schema/
-│
-├── postgres/                   # Contenedor PostgreSQL (destino)
-│   ├── Dockerfile
-│   ├── 001_postgres_ddl.sql    # Tablas de negocio (clientes, productos, etc.)
-│   └── 002_audit_tables.sql    # Tablas de auditoría de carga
-│
-├── sql/
-│   └── source_schema/          # DDL del origen SQL Server
-│       ├── 01_create_tables.sql
-│       ├── 02_create_procedures.sql
-│       ├── 03_create_views.sql
-│       ├── 04_load_json.sql
-│       └── 05_validation_queries.sql
-│
-├── data/
-│   └── source/
-│       └── datos_origen.json   # Datos semilla (20 clientes sucios, etc.)
-│
-├── src/                        # Código Python del pipeline ETL
-│   ├── pipeline.py             # Punto de entrada: Extract → Transform → Load
-│   ├── config/
-│   │   ├── settings.py         # Configuración centralizada (env vars)
-│   │   └── logging_config.py
-│   ├── extract/
-│   │   └── sqlserver_connector.py   # Lee datos crudos de SQL Server
-│   ├── transform/
-│   │   ├── orchestrator.py     # Orquesta limpieza → dedup → survivorship
-│   │   ├── cleansing.py        # Normalización de campos
-│   │   ├── deduplication.py    # Union-Find para detectar duplicados
-│   │   ├── survivorship.py     # Elige registro sobreviviente
-│   │   ├── fk_reassignment.py  # Reasigna FKs al sobreviviente
-│   │   └── validation.py       # Validaciones de formato y negocio
-│   └── load/
-│       ├── postgres_connector.py  # Carga datos en PostgreSQL (UPSERT)
-│       └── load_queries.sql       # Consultas SQL parametrizadas
-│
-├── tests/                      # Tests unitarios e integración
-│   ├── unit/
-│   └── integration/
-│
-└── docs/
-    └── origen_sqlserver.md     # Documentación del módulo origen
-```
-
-## Pipeline ETL — Detalle de cada etapa
-
-### 1. Extract (SQL Server → Python)
-
-Conecta a SQL Server vía pyodbc y extrae las 4 tablas de origen como listas de diccionarios, sin modificar los datos.
-
-### 2. Transform (Limpieza + Deduplicación)
-
-1. **Cleansing**: Normaliza nombres (Title Case), limpia espacios, valida correos, estandariza teléfonos, parsea fechas
-2. **Deduplication**: Algoritmo Union-Find que agrupa registros por documento/correo coincidente
-3. **Survivorship**: Elige el registro más completo como "sobreviviente", fusiona campos faltantes desde los duplicados
-4. **FK Reassignment**: Reasigna las llaves foráneas de facturas y detalles para que apunten al sobreviviente
-5. **Validation**: Detecta errores de formato e inconsistencias de negocio (totales que no cuadran, fechas futuras, etc.)
-
-### 3. Load (Python → PostgreSQL)
-
-Inserta los datos limpios en PostgreSQL usando UPSERT (`INSERT ... ON CONFLICT ... DO UPDATE`). Cada fila se ejecuta dentro de un SAVEPOINT para que un error no tumbe toda la transacción. Registra estadísticas en `etl_carga_auditoria` y errores en `etl_carga_errores`.
-
-## Conexiones locales
-
-| Base | Host | Puerto | Usuario | Contraseña | Base de datos |
-|---|---|---|---|---|---|
-| SQL Server | `localhost` | `1435` | `sa` | `Grupo1@BDD!` | `SmartCleanOrigen` |
-| PostgreSQL | `localhost` | `5432` | `etl_user` | `Grupo1_PG!` | `etl_destino` |
-
-## Reejecutar solo el pipeline (Sin reiniciar BD)
-
-Si modificaste el código Python en `src/` y solo quieres probar el ETL sin tener que borrar y recrear las bases de datos de nuevo, corre:
+Con las bases levantadas:
 
 ```bash
-# Vuelve a compilar y ejecutar solo el contenedor de ETL
-docker compose build etl_pipeline
-docker compose up etl_pipeline
+docker compose run --rm etl_pipeline
 ```
 
-## Demostración en vivo
+Los UPSERT se realizan usando los identificadores estables del origen. Una segunda ejecución actualiza las filas existentes y conserva las cantidades.
 
-1. Asegúrate de tener la aplicación levantada y muestra la web en `http://localhost:8000`.
-2. Ejecuta este comando en tu terminal para inyectar nuevos datos JSON sucios/limpios "en caliente" directamente a SQL Server sin tener que apagar los contenedores:
-
-   ```bash
-   docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Grupo1@BDD!" -C -d SmartCleanOrigen -i /usr/src/app/source_schema/06_load_live_demo.sql
-   ```
-
-3. Ahora ejecuta el pipeline ETL para que limpie y migre esos nuevos datos:
-
-   ```bash
-   docker compose run --rm etl_pipeline
-   ```
-
-4. Refresca tu página web y verás cómo los datos válidos ("Cliente Super Nuevo") aparecieron en PostgreSQL, mientras que los datos sucios ("Cliente Malo Demo") fueron rechazados y filtrados.
-
-## Tests
+Cuando se modifiquen los scripts de creación de PostgreSQL, usa una prueba limpia porque los archivos de `/docker-entrypoint-initdb.d` solo se ejecutan al crear el volumen:
 
 ```bash
-# Ejecutar tests unitarios (no requieren Docker)
-pip install pyodbc psycopg2-binary
-python -m pytest tests/unit/ -v
+docker compose down -v
+docker compose up -d --build
 ```
+
+## Componentes principales
+
+```text
+data/
+  generate_dirty_data.py       Generador reproducible de los 1.200 clientes
+  source/datos_origen.json     Dataset sucio cargado en SQL Server
+sql/source_schema/
+  01_create_tables.sql
+  02_create_procedures.sql     OPENJSON, TRY/CATCH, COMMIT/ROLLBACK y MERGE
+  03_create_views.sql
+  04_load_json.sql
+postgres/
+  001_postgres_ddl.sql         Tablas normalizadas
+  002_audit_tables.sql         Mapeos, consolidación, errores y validaciones
+src/
+  extract/                     Lectura sin transformación
+  transform/                   Limpieza, deduplicación, survivorship y FKs
+  load/                        UPSERT, auditoría y validación final
+webapp/                        FastAPI + interfaz de comparación
+```
+
+## Reglas aplicadas
+
+- Colapso de espacios y normalización de nombres.
+- Correos en minúsculas y validación de formato.
+- Documentos y teléfonos reducidos a dígitos.
+- Fechas convertidas desde varios formatos; fechas inválidas se auditan.
+- Duplicación por documento, correo o teléfono completo.
+- Selección del registro más completo como maestro.
+- Reasignación de facturas y productos hacia los sobrevivientes.
+- Clientes sin documento se conservan; no se pierden sus facturas.
+- Estados de factura (`PAGADA`, `PENDIENTE`, `ANULADA`, etc.) se conservan.
+- Validación automática de cantidades, total monetario y referencias huérfanas.
+
+## Pruebas sin Docker
+
+```bash
+python -m pip install pytest psycopg2-binary
+python -m pytest tests -q
+```
+
+El conjunto incluye pruebas unitarias y un contrato integral sobre el dataset de 1.200 clientes.
+
+## Diagnóstico
+
+```bash
+docker compose logs --tail=200 sqlserver
+docker compose logs --tail=200 etl_pipeline
+docker compose logs --tail=200 webapp
+```
+
+Para generar un archivo de evidencias:
+
+```bash
+docker compose logs --no-color > logs_proyecto.txt
+```
+## Prueba en vivo
+
+```bash
+docker compose exec -T sqlserver bash -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Grupo1@BDD!" -C -d SmartCleanOrigen -i /usr/src/app/source_schema/06_load_live_demo.sql'
+```
+
+```bash
+docker compose run --rm etl_pipeline
+```
+

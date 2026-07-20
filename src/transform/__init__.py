@@ -16,6 +16,7 @@ from .cleansing import (
     limpiar_telefono,
     limpiar_texto,
     normalizar_nombre,
+    normalizar_estado_factura,
     parsear_fecha,
 )
 from .deduplication import agrupar_duplicados_clientes, agrupar_duplicados_productos
@@ -49,6 +50,7 @@ __all__ = [
     "limpiar_telefono",
     "limpiar_texto",
     "normalizar_nombre",
+    "normalizar_estado_factura",
     "parsear_fecha",
     "agrupar_duplicados_clientes",
     "agrupar_duplicados_productos",

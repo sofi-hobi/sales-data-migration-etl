@@ -9,6 +9,7 @@ EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _FECHA_FORMATOS = ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d")
 _ESTADOS_ACTIVOS = {"ACTIVO", "A", "1", "TRUE", "SI"}
 _ESTADOS_INACTIVOS = {"INACTIVO", "I", "0", "FALSE", "NO"}
+_ESTADOS_FACTURA = {"PAGADA", "PENDIENTE", "ANULADA", "EMITIDA", "VENCIDA"}
 _CONECTORES_NOMBRE = {"de", "del", "la", "las", "los", "y"}
 
 
@@ -67,6 +68,16 @@ def limpiar_estado(valor):
     return "ACTIVO"
 
 
+def normalizar_estado_factura(valor):
+    """Conserva los estados propios de una factura en vez de convertirlos
+    erróneamente a ACTIVO/INACTIVO."""
+    texto = limpiar_texto(valor)
+    if texto is None:
+        return "EMITIDA"
+    estado = texto.upper()
+    return estado if estado in _ESTADOS_FACTURA else "EMITIDA"
+
+
 def parsear_fecha(valor):
     if valor is None:
         return None
@@ -114,7 +125,7 @@ def limpiar_factura(crudo):
         "numero_factura": limpiar_texto(crudo.get("NumeroFactura")),
         "id_cliente_origen": crudo["IdClienteOrigen"],
         "fecha_emision": parsear_fecha(crudo.get("FechaEmisionTexto")),
-        "estado": limpiar_estado(crudo.get("EstadoTexto")),
+        "estado": normalizar_estado_factura(crudo.get("EstadoTexto")),
         "subtotal": crudo.get("Subtotal"),
         "iva": crudo.get("IVA"),
         "total": crudo.get("Total"),

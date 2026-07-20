@@ -42,7 +42,8 @@ class SQLServerExtractor:
         SELECT IdClienteOrigen, Documento, Nombre, Apellido, Correo, Telefono,
                Direccion, Ciudad, FechaNacimientoTexto, FechaRegistroTexto,
                EstadoTexto, FechaCreacionSistema, FechaActualizacion
-        FROM SmartCleanOrigen.dbo.ClienteOrigen;
+        FROM dbo.ClienteOrigen
+        ORDER BY IdClienteOrigen;
         """
         return self._ejecutar_consulta(query)
 
@@ -52,7 +53,8 @@ class SQLServerExtractor:
         SELECT IdProductoOrigen, CodigoProducto, NombreProducto, 
                CategoriaTexto, Precio, EstadoTexto, 
                FechaCreacionSistema, FechaActualizacion 
-        FROM SmartCleanOrigen.dbo.ProductoOrigen;
+        FROM dbo.ProductoOrigen
+        ORDER BY IdProductoOrigen;
         """
         return self._ejecutar_consulta(query)
 
@@ -62,7 +64,8 @@ class SQLServerExtractor:
         SELECT IdFacturaOrigen, NumeroFactura, IdClienteOrigen, 
                FechaEmisionTexto, EstadoTexto, Subtotal, IVA, Total, 
                FechaCreacionSistema, FechaActualizacion 
-        FROM SmartCleanOrigen.dbo.FacturaOrigen;
+        FROM dbo.FacturaOrigen
+        ORDER BY IdFacturaOrigen;
         """
         return self._ejecutar_consulta(query)
 
@@ -72,7 +75,8 @@ class SQLServerExtractor:
         SELECT IdDetalleOrigen, IdFacturaOrigen, IdProductoOrigen, 
                Cantidad, PrecioUnitario, Descuento, TotalLinea, 
                FechaCreacionSistema, FechaActualizacion 
-        FROM SmartCleanOrigen.dbo.FacturaDetalleOrigen;
+        FROM dbo.FacturaDetalleOrigen
+        ORDER BY IdDetalleOrigen;
         """
         return self._ejecutar_consulta(query)
 

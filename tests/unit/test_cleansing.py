@@ -14,6 +14,7 @@ from transform.cleansing import (
     limpiar_telefono,
     limpiar_texto,
     normalizar_nombre,
+    normalizar_estado_factura,
     parsear_fecha,
 )
 
@@ -77,6 +78,15 @@ class TestLimpiarEstado(unittest.TestCase):
 
     def test_none_por_defecto_activo(self):
         self.assertEqual(limpiar_estado(None), "ACTIVO")
+
+
+class TestEstadoFactura(unittest.TestCase):
+    def test_conserva_estados_de_negocio(self):
+        for valor in ("pagada", "PENDIENTE", "anulada"):
+            self.assertEqual(normalizar_estado_factura(valor), valor.upper())
+
+    def test_estado_desconocido_pasa_a_emitida(self):
+        self.assertEqual(normalizar_estado_factura("raro"), "EMITIDA")
 
 
 class TestParsearFecha(unittest.TestCase):

@@ -1,26 +1,3 @@
--- ============================================================
--- load_queries.sql
--- Consultas SQL usadas por src/load/postgres_connector.py.
---
--- Formato: cada bloque empieza con un comentario "-- name: <nombre>"
--- y termina en el siguiente "-- name:" o en el fin del archivo.
--- postgres_connector.py lee este archivo y arma un diccionario
--- {nombre: sql}, así las consultas quedan en un solo lugar en vez
--- de estar "hardcodeadas" dentro del código Python.
---
--- Todas usan INSERT ... ON CONFLICT (...) DO UPDATE, que es la forma
--- estándar de Postgres de hacer "UPSERT":
---   - si la clave de negocio (documento, codigo_producto, etc.)
---     NO existe todavía          -> se hace un INSERT normal
---   - si la clave de negocio YA existe (duplicado)  -> se actualizan
---     sus columnas con los valores nuevos, en vez de crear una fila
---     repetida. Así se evitan los duplicados sin perder información.
---
--- El truco "(xmax = 0) AS fue_insertado" le permite al connector
--- distinguir, fila por fila, si el UPSERT terminó en un INSERT o en
--- un UPDATE, para poder generar las estadísticas de carga.
--- ============================================================
-
 -- name: upsert_cliente
 INSERT INTO clientes (
     id_cliente_origen, documento, nombre, apellido, correo, telefono,
@@ -28,20 +5,21 @@ INSERT INTO clientes (
 ) VALUES (
     %(id_cliente_origen)s, %(documento)s, %(nombre)s, %(apellido)s, %(correo)s,
     %(telefono)s, %(direccion)s, %(ciudad)s, %(fecha_nacimiento)s,
-    %(fecha_registro)s, %(estado)s, %(ids_origen_grupo)s
+    %(fecha_registro)s, %(estado)s, %(ids_origen_grupo)s::jsonb
 )
-ON CONFLICT (documento) DO UPDATE SET
-    id_cliente_origen = EXCLUDED.id_cliente_origen,
-    nombre            = EXCLUDED.nombre,
-    apellido          = EXCLUDED.apellido,
-    correo            = EXCLUDED.correo,
-    telefono          = EXCLUDED.telefono,
-    direccion         = EXCLUDED.direccion,
-    ciudad            = EXCLUDED.ciudad,
-    fecha_nacimiento  = EXCLUDED.fecha_nacimiento,
-    fecha_registro    = EXCLUDED.fecha_registro,
-    estado            = EXCLUDED.estado,
-    ids_origen_grupo  = EXCLUDED.ids_origen_grupo
+ON CONFLICT (id_cliente_origen) DO UPDATE SET
+    documento           = EXCLUDED.documento,
+    nombre              = EXCLUDED.nombre,
+    apellido            = EXCLUDED.apellido,
+    correo              = EXCLUDED.correo,
+    telefono            = EXCLUDED.telefono,
+    direccion           = EXCLUDED.direccion,
+    ciudad              = EXCLUDED.ciudad,
+    fecha_nacimiento    = EXCLUDED.fecha_nacimiento,
+    fecha_registro      = EXCLUDED.fecha_registro,
+    estado              = EXCLUDED.estado,
+    ids_origen_grupo    = EXCLUDED.ids_origen_grupo,
+    fecha_actualizacion = now()
 RETURNING id_cliente, (xmax = 0) AS fue_insertado;
 
 -- name: upsert_producto
@@ -49,15 +27,16 @@ INSERT INTO productos (
     id_producto_origen, codigo_producto, nombre_producto, categoria, precio, estado, ids_origen_grupo
 ) VALUES (
     %(id_producto_origen)s, %(codigo_producto)s, %(nombre_producto)s,
-    %(categoria)s, %(precio)s, %(estado)s, %(ids_origen_grupo)s
+    %(categoria)s, %(precio)s, %(estado)s, %(ids_origen_grupo)s::jsonb
 )
-ON CONFLICT (codigo_producto) DO UPDATE SET
-    id_producto_origen = EXCLUDED.id_producto_origen,
+ON CONFLICT (id_producto_origen) DO UPDATE SET
+    codigo_producto     = EXCLUDED.codigo_producto,
     nombre_producto    = EXCLUDED.nombre_producto,
     categoria          = EXCLUDED.categoria,
     precio             = EXCLUDED.precio,
     estado             = EXCLUDED.estado,
-    ids_origen_grupo   = EXCLUDED.ids_origen_grupo
+    ids_origen_grupo   = EXCLUDED.ids_origen_grupo,
+    fecha_actualizacion = now()
 RETURNING id_producto, (xmax = 0) AS fue_insertado;
 
 -- name: upsert_factura
@@ -69,15 +48,16 @@ INSERT INTO facturas (
     %(id_cliente)s, %(fecha_emision)s, %(estado)s,
     %(subtotal)s, %(iva)s, %(total)s
 )
-ON CONFLICT (numero_factura) DO UPDATE SET
-    id_factura_origen = EXCLUDED.id_factura_origen,
-    id_cliente_origen = EXCLUDED.id_cliente_origen,
-    id_cliente        = EXCLUDED.id_cliente,
-    fecha_emision     = EXCLUDED.fecha_emision,
-    estado            = EXCLUDED.estado,
-    subtotal          = EXCLUDED.subtotal,
-    iva               = EXCLUDED.iva,
-    total             = EXCLUDED.total
+ON CONFLICT (id_factura_origen) DO UPDATE SET
+    numero_factura      = EXCLUDED.numero_factura,
+    id_cliente_origen   = EXCLUDED.id_cliente_origen,
+    id_cliente          = EXCLUDED.id_cliente,
+    fecha_emision       = EXCLUDED.fecha_emision,
+    estado              = EXCLUDED.estado,
+    subtotal            = EXCLUDED.subtotal,
+    iva                 = EXCLUDED.iva,
+    total               = EXCLUDED.total,
+    fecha_actualizacion = now()
 RETURNING id_factura, (xmax = 0) AS fue_insertado;
 
 -- name: upsert_detalle
@@ -90,14 +70,54 @@ INSERT INTO detalles (
     %(id_producto_origen)s, %(id_producto)s,
     %(cantidad)s, %(precio_unitario)s, %(descuento)s, %(total_linea)s
 )
-ON CONFLICT (id_factura_origen, id_producto_origen) DO UPDATE SET
-    id_factura      = EXCLUDED.id_factura,
-    id_producto     = EXCLUDED.id_producto,
-    cantidad        = EXCLUDED.cantidad,
-    precio_unitario = EXCLUDED.precio_unitario,
-    descuento       = EXCLUDED.descuento,
-    total_linea     = EXCLUDED.total_linea
+ON CONFLICT (id_detalle_origen) DO UPDATE SET
+    id_factura_origen   = EXCLUDED.id_factura_origen,
+    id_factura          = EXCLUDED.id_factura,
+    id_producto_origen  = EXCLUDED.id_producto_origen,
+    id_producto         = EXCLUDED.id_producto,
+    cantidad            = EXCLUDED.cantidad,
+    precio_unitario     = EXCLUDED.precio_unitario,
+    descuento           = EXCLUDED.descuento,
+    total_linea         = EXCLUDED.total_linea,
+    fecha_actualizacion = now()
 RETURNING id_detalle, (xmax = 0) AS fue_insertado;
+
+-- name: upsert_cliente_mapeo
+INSERT INTO cliente_origen_mapeo (
+    id_cliente_origen, id_cliente_sobreviviente, id_cliente, es_sobreviviente
+) VALUES (
+    %(id_cliente_origen)s, %(id_cliente_sobreviviente)s, %(id_cliente)s, %(es_sobreviviente)s
+)
+ON CONFLICT (id_cliente_origen) DO UPDATE SET
+    id_cliente_sobreviviente = EXCLUDED.id_cliente_sobreviviente,
+    id_cliente               = EXCLUDED.id_cliente,
+    es_sobreviviente         = EXCLUDED.es_sobreviviente,
+    fecha_actualizacion      = now();
+
+-- name: upsert_auditoria_consolidacion
+INSERT INTO auditoria_consolidacion (
+    id_cliente_sobreviviente, id_cliente, ids_origen_grupo,
+    cantidad_registros, datos_maestro
+) VALUES (
+    %(id_cliente_sobreviviente)s, %(id_cliente)s, %(ids_origen_grupo)s::jsonb,
+    %(cantidad_registros)s, %(datos_maestro)s::jsonb
+)
+ON CONFLICT (id_cliente_sobreviviente) DO UPDATE SET
+    id_cliente          = EXCLUDED.id_cliente,
+    ids_origen_grupo    = EXCLUDED.ids_origen_grupo,
+    cantidad_registros  = EXCLUDED.cantidad_registros,
+    datos_maestro       = EXCLUDED.datos_maestro,
+    fecha_actualizacion = now();
+
+-- name: upsert_error_transformacion
+INSERT INTO etl_transformacion_errores (
+    entidad, id_origen, campo, valor_original, motivo
+) VALUES (
+    %(entidad)s, %(id_origen)s, %(campo)s, %(valor_original)s, %(motivo)s
+)
+ON CONFLICT (entidad, id_origen, campo, motivo) DO UPDATE SET
+    valor_original      = EXCLUDED.valor_original,
+    fecha_actualizacion = now();
 
 -- name: insertar_auditoria_carga
 INSERT INTO etl_carga_auditoria (
@@ -112,5 +132,13 @@ INSERT INTO etl_carga_auditoria (
 INSERT INTO etl_carga_errores (
     tabla, identificador_registro, mensaje_error, registro_json
 ) VALUES (
-    %(tabla)s, %(identificador_registro)s, %(mensaje_error)s, %(registro_json)s
+    %(tabla)s, %(identificador_registro)s, %(mensaje_error)s, %(registro_json)s::jsonb
+);
+
+-- name: insertar_validacion
+INSERT INTO etl_validacion_resultado (
+    nombre_validacion, valor_origen, valor_destino, es_correcto, detalle
+) VALUES (
+    %(nombre_validacion)s, %(valor_origen)s, %(valor_destino)s,
+    %(es_correcto)s, %(detalle)s
 );
