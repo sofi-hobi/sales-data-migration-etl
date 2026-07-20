@@ -1,8 +1,11 @@
 import os
+# pyrefly: ignore [missing-import]
 import pyodbc
 import psycopg2
 from psycopg2.extras import RealDictCursor
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
@@ -21,22 +24,22 @@ def get_sqlserver_data():
         cursor = conn.cursor()
         
         # Clientes
-        cursor.execute("SELECT TOP 20 idClienteOrigen, documento, nombre, apellido, correo, telefono, estadoTexto as estado FROM ClienteOrigen ORDER BY idClienteOrigen")
+        cursor.execute("SELECT idClienteOrigen, documento, nombre, apellido, correo, telefono, estadoTexto as estado FROM ClienteOrigen ORDER BY idClienteOrigen")
         cols = [column[0] for column in cursor.description]
         clientes = [dict(zip(cols, row)) for row in cursor.fetchall()]
         
         # Productos
-        cursor.execute("SELECT TOP 20 idProductoOrigen, codigoProducto, nombreProducto, precio, estadoTexto as estado FROM ProductoOrigen ORDER BY idProductoOrigen")
+        cursor.execute("SELECT idProductoOrigen, codigoProducto, nombreProducto, precio, estadoTexto as estado FROM ProductoOrigen ORDER BY idProductoOrigen")
         cols = [column[0] for column in cursor.description]
         productos = [dict(zip(cols, row)) for row in cursor.fetchall()]
         
         # Facturas
-        cursor.execute("SELECT TOP 20 idFacturaOrigen, numeroFactura, idClienteOrigen, subtotal, total FROM FacturaOrigen ORDER BY idFacturaOrigen")
+        cursor.execute("SELECT idFacturaOrigen, numeroFactura, idClienteOrigen, subtotal, total FROM FacturaOrigen ORDER BY idFacturaOrigen")
         cols = [column[0] for column in cursor.description]
         facturas = [dict(zip(cols, row)) for row in cursor.fetchall()]
         
         # Detalles
-        cursor.execute("SELECT TOP 20 idDetalleOrigen, idFacturaOrigen, idProductoOrigen, cantidad, totalLinea FROM FacturaDetalleOrigen ORDER BY idDetalleOrigen")
+        cursor.execute("SELECT idDetalleOrigen, idFacturaOrigen, idProductoOrigen, cantidad, totalLinea FROM FacturaDetalleOrigen ORDER BY idDetalleOrigen")
         cols = [column[0] for column in cursor.description]
         detalles = [dict(zip(cols, row)) for row in cursor.fetchall()]
 
