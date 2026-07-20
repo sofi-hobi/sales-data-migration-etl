@@ -168,13 +168,3 @@ Para generar un archivo de evidencias:
 ```bash
 docker compose logs --no-color > logs_proyecto.txt
 ```
-## Prueba en vivo
-
-```bash
-docker compose exec -T sqlserver bash -lc '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Grupo1@BDD!" -C -d SmartCleanOrigen -i /usr/src/app/source_schema/06_load_live_demo.sql'
-```
-
-```bash
-docker compose run --rm etl_pipeline
-```
-
