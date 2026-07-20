@@ -1,1 +1,0 @@
-# survivorship_rules

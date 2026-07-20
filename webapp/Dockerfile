@@ -1,8 +1,6 @@
 FROM python:3.11-slim
 
-# ---------------------------------------------------------------
-# Instalar el driver ODBC 18 para SQL Server (requerido por pyodbc)
-# ---------------------------------------------------------------
+# Instalar dependencias del sistema y driver ODBC
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        curl gnupg2 apt-transport-https \
@@ -17,12 +15,11 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Instalar dependencias Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el código fuente del pipeline
-COPY src/ ./src/
+COPY . .
 
-# Ejecutar el pipeline ETL
-ENTRYPOINT ["python", "-m", "src.pipeline"]
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

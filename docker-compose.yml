@@ -1,4 +1,7 @@
 services:
+  # ---------------------------------------------------------------
+  # SQL Server (Origen) — Base SmartCleanOrigen con datos sucios
+  # ---------------------------------------------------------------
   sqlserver:
     build:
       context: .
@@ -14,16 +17,15 @@ services:
     networks:
       - etl_network
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"
-        ]
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
 
+  # ---------------------------------------------------------------
+  # PostgreSQL (Destino) — Base etl_destino con tablas limpias
+  # ---------------------------------------------------------------
   postgres:
     build:
       context: ./postgres
@@ -31,17 +33,74 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: "etl_user"
-      POSTGRES_PASSWORD: "Grupo1_PG!"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Grupo1_PG!}"
       POSTGRES_DB: "etl_destino"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - etl_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U etl_user -d etl_destino"]
+      test: [ "CMD-SHELL", "pg_isready -U etl_user -d etl_destino" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ---------------------------------------------------------------
+  # Pipeline ETL (Extract → Transform → Load)
+  # Se ejecuta una vez y termina. Depende de que ambas BDs estén
+  # listas (healthy) antes de arrancar.
+  # ---------------------------------------------------------------
+  etl_pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      # Dentro de la red Docker, los hosts son los nombres de servicio
+      SQLSERVER_HOST: "sqlserver"
+      SQLSERVER_PORT: "1433"
+      SQLSERVER_DATABASE: "SmartCleanOrigen"
+      SQLSERVER_USER: "sa"
+      SQLSERVER_PASSWORD: "${MSSQL_SA_PASSWORD:-Grupo1@BDD!}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "etl_destino"
+      POSTGRES_USER: "etl_user"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Grupo1_PG!}"
+    networks:
+      - etl_network
+
+  # ---------------------------------------------------------------
+  # Web App (Presentación)
+  # Aplicación FastAPI que sirve una página web para comparar los datos.
+  # ---------------------------------------------------------------
+  webapp:
+    build:
+      context: ./webapp
+    ports:
+      - "8000:8000"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      SQLSERVER_HOST: "sqlserver"
+      SQLSERVER_PORT: "1433"
+      SQLSERVER_DATABASE: "SmartCleanOrigen"
+      SQLSERVER_USER: "sa"
+      SQLSERVER_PASSWORD: "${MSSQL_SA_PASSWORD:-Grupo1@BDD!}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "etl_destino"
+      POSTGRES_USER: "etl_user"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-Grupo1_PG!}"
+    networks:
+      - etl_network
 
 volumes:
   sqlserver_data:

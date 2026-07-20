@@ -1,45 +1,38 @@
 # postgres_connector.py
-"""Etapa de load
+"""Etapa de Load del pipeline ETL: SQL Server → PostgreSQL.
 
 Recibe el diccionario que devuelve `ejecutar_transformacion` (Integrante 3)
 -> {"clientes": [...], "productos": [...], "facturas": [...],
     "detalles": [...], "errores": [...]}
 y lo carga en PostgreSQL:
 
-  1. Conexion a PostgreSQL (settings.get_postgres_config()).
-  2. Insercion de registros (clientes -> productos -> facturas -> detalles,
-     en ese orden, para respetar las llaves foraneas).
+  1. Conexión a PostgreSQL (settings.get_postgres_config()).
+  2. Inserción de registros (clientes -> productos -> facturas -> detalles,
+     en ese orden, para respetar las llaves foráneas).
   3. Evita duplicados con UPSERT (INSERT ... ON CONFLICT ... DO UPDATE)
-     sobre la clave de negocio de cada tabla (documento, codigo,
+     sobre la clave de negocio de cada tabla (documento, codigo_producto,
      numero_factura). Un duplicado no genera una fila nueva: actualiza
      la fila existente.
-  4. Maneja errores de insercion fila por fila usando SAVEPOINT: si una
+  4. Maneja errores de inserción fila por fila usando SAVEPOINT: si una
      fila falla (ej. viola una constraint), se revierte SOLO esa fila y
-     el resto de la carga continua. Cada error queda registrado en la
+     el resto de la carga continúa. Cada error queda registrado en la
      tabla etl_carga_errores.
-  5. Genera estadisticas de carga (leidos / insertados / actualizados /
-     con error, y duracion) y las guarda en etl_carga_auditoria.
+  5. Genera estadísticas de carga (leídos / insertados / actualizados /
+     con error, y duración) y las guarda en etl_carga_auditoria.
 
-Uso tipico (ver pipeline.py):
+Uso típico (ver pipeline.py):
     from src.load.postgres_connector import PostgresLoader
 
     loader = PostgresLoader()
     stats = loader.cargar_todo(resultado_transformado)
 
 ------------------------------------------------------------------------
-NOTA IMPORTANTE SOBRE NOMBRES DE CAMPOS
+MAPEO DE CAMPOS
 ------------------------------------------------------------------------
-cleansing.py, survivorship.py y fk_reassignment.py (Integrante 3) no
-estaban entre los archivos compartidos, asi que los nombres de campo
-que usa este archivo se infirieron de las pistas visibles en
-orchestrator.py (por ejemplo "id_cliente_origen_sobreviviente", que es
-el segundo argumento de construir_mapa_sobrevivientes).
-
-Para no tener que salir a cambiar codigo por todos lados si esos
-nombres no coinciden exactamente con los reales, TODO el mapeo de
-campos vive en un solo lugar: la constante COLUMN_MAP, un poco mas
-abajo. Si un campo real se llama distinto, se ajusta ahi (una sola
-linea) y el resto del connector sigue funcionando igual.
+Todo el mapeo entre los nombres que usa Transform (snake_case) y los
+nombres de las columnas de PostgreSQL vive en la constante COLUMN_MAP.
+Si Transform cambia un nombre de campo, se ajusta ahí y el resto del
+connector sigue funcionando igual.
 ------------------------------------------------------------------------
 """
 from __future__ import annotations
@@ -48,11 +41,11 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import psycopg2
 
-from ..settings import BATCH_SIZE, PostgresConfig, get_postgres_config
+from ..config.settings import BATCH_SIZE, PostgresConfig, get_postgres_config
 
 logger = logging.getLogger(__name__)
 
@@ -90,39 +83,52 @@ def _parsear_queries(path: Path) -> dict[str, str]:
 
 
 # ------------------------------------------------------------------
-# Mapa de columnas (ver nota al inicio del archivo)
-# clave = nombre de columna que usan las queries de load_queries.sql
-# valor = nombre de campo que trae el dict de Transform
+# Mapa de columnas
+# clave = nombre de parámetro en la query de load_queries.sql
+# valor = nombre de campo en el dict que devuelve Transform
 # ------------------------------------------------------------------
 COLUMN_MAP: dict[str, dict[str, str]] = {
     "clientes": {
         "id_cliente_origen": "id_cliente_origen_sobreviviente",
         "documento": "documento",
         "nombre": "nombre",
-        "email": "email",
+        "apellido": "apellido",
+        "correo": "correo",
         "telefono": "telefono",
         "direccion": "direccion",
+        "ciudad": "ciudad",
+        "fecha_nacimiento": "fecha_nacimiento",
+        "fecha_registro": "fecha_registro",
+        "estado": "estado",
         "ids_origen_grupo": "ids_origen_grupo",
     },
     "productos": {
         "id_producto_origen": "id_producto_origen_sobreviviente",
-        "codigo": "codigo",
-        "nombre": "nombre",
+        "codigo_producto": "codigo_producto",
+        "nombre_producto": "nombre_producto",
         "categoria": "categoria",
         "precio": "precio",
+        "estado": "estado",
         "ids_origen_grupo": "ids_origen_grupo",
     },
     "facturas": {
+        "id_factura_origen": "id_factura_origen",
         "numero_factura": "numero_factura",
         "id_cliente_origen": "id_cliente_origen",
-        "fecha_factura": "fecha_factura",
+        "fecha_emision": "fecha_emision",
+        "estado": "estado",
+        "subtotal": "subtotal",
+        "iva": "iva",
         "total": "total",
     },
     "detalles": {
-        "numero_factura": "numero_factura",
+        "id_detalle_origen": "id_detalle_origen",
+        "id_factura_origen": "id_factura_origen",
         "id_producto_origen": "id_producto_origen",
         "cantidad": "cantidad",
         "precio_unitario": "precio_unitario",
+        "descuento": "descuento",
+        "total_linea": "total_linea",
     },
 }
 
@@ -136,6 +142,13 @@ def _stats_vacio(leidos: int) -> dict[str, int]:
     }
 
 
+def _serializar_ids_grupo(ids: list | None) -> str | None:
+    """Convierte la lista de IDs de origen a string para almacenar en TEXT."""
+    if ids is None:
+        return None
+    return json.dumps(ids, default=str)
+
+
 class PostgresLoader:
     """Carga en PostgreSQL el resultado de la etapa de Transform."""
 
@@ -145,10 +158,10 @@ class PostgresLoader:
         self.conn = None
 
     # ---------------------------------------------------------
-    # Conexion
+    # Conexión
     # ---------------------------------------------------------
     def conectar(self):
-        """Crea (o reutiliza) la conexion a PostgreSQL."""
+        """Crea (o reutiliza) la conexión a PostgreSQL."""
         if self.conn is None or self.conn.closed:
             logger.info(
                 "Conectando a PostgreSQL en %s:%s/%s",
@@ -175,8 +188,8 @@ class PostgresLoader:
     def _ejecutar_con_savepoint(self, cur, sql: str, params: dict) -> tuple:
         """Ejecuta 'sql' dentro de un SAVEPOINT.
 
-        Si falla, revierte SOLO esa fila (no toda la transaccion) y
-        vuelve a lanzar la excepcion para que el llamador la cuente
+        Si falla, revierte SOLO esa fila (no toda la transacción) y
+        vuelve a lanzar la excepción para que el llamador la cuente
         como error y siga con la siguiente fila.
         """
         cur.execute("SAVEPOINT sp_fila")
@@ -190,7 +203,7 @@ class PostgresLoader:
             raise
 
     def _registrar_error(self, cur, tabla: str, identificador: Any, mensaje: str, registro: dict) -> None:
-        """Guarda un error de insercion en etl_carga_errores y lo loguea."""
+        """Guarda un error de inserción en etl_carga_errores y lo loguea."""
         logger.warning("Error cargando %s (clave=%s): %s", tabla, identificador, mensaje)
         try:
             cur.execute("SAVEPOINT sp_error")
@@ -205,8 +218,6 @@ class PostgresLoader:
             )
             cur.execute("RELEASE SAVEPOINT sp_error")
         except psycopg2.Error as exc:
-            # Si ni siquiera se pudo registrar el error (ej. la BD se cayo),
-            # no queremos que esto tumbe toda la carga: solo lo logueamos.
             cur.execute("ROLLBACK TO SAVEPOINT sp_error")
             logger.error("No se pudo registrar el error de carga en la BD: %s", exc)
 
@@ -216,7 +227,7 @@ class PostgresLoader:
     def _cargar_clientes(self, clientes: list[dict]) -> tuple[dict, dict]:
         """Inserta/actualiza clientes. Devuelve (stats, mapa_ids) donde
         mapa_ids traduce id_cliente_origen -> id_cliente (serial de Postgres),
-        necesario despues para resolver la FK de facturas."""
+        necesario después para resolver la FK de facturas."""
         mapa_campos = COLUMN_MAP["clientes"]
         query = self.queries["upsert_cliente"]
         stats = _stats_vacio(len(clientes))
@@ -225,7 +236,12 @@ class PostgresLoader:
         cur = self.conn.cursor()
         for i, c in enumerate(clientes, start=1):
             id_origen = c.get(mapa_campos["id_cliente_origen"])
-            params = {destino: c.get(origen) for destino, origen in mapa_campos.items()}
+            params = {}
+            for destino, origen in mapa_campos.items():
+                valor = c.get(origen)
+                if destino == "ids_origen_grupo":
+                    valor = _serializar_ids_grupo(valor)
+                params[destino] = valor
             try:
                 nuevo_id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
@@ -240,6 +256,7 @@ class PostgresLoader:
         return stats, mapa_ids
 
     def _cargar_productos(self, productos: list[dict]) -> tuple[dict, dict]:
+        """Inserta/actualiza productos. Devuelve (stats, mapa_ids)."""
         mapa_campos = COLUMN_MAP["productos"]
         query = self.queries["upsert_producto"]
         stats = _stats_vacio(len(productos))
@@ -248,14 +265,19 @@ class PostgresLoader:
         cur = self.conn.cursor()
         for i, p in enumerate(productos, start=1):
             id_origen = p.get(mapa_campos["id_producto_origen"])
-            params = {destino: p.get(origen) for destino, origen in mapa_campos.items()}
+            params = {}
+            for destino, origen in mapa_campos.items():
+                valor = p.get(origen)
+                if destino == "ids_origen_grupo":
+                    valor = _serializar_ids_grupo(valor)
+                params[destino] = valor
             try:
                 nuevo_id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
                 mapa_ids[id_origen] = nuevo_id
             except psycopg2.Error as exc:
                 stats["con_error"] += 1
-                self._registrar_error(cur, "productos", params.get("codigo", id_origen), str(exc), p)
+                self._registrar_error(cur, "productos", params.get("codigo_producto", id_origen), str(exc), p)
             if i % BATCH_SIZE == 0:
                 self.conn.commit()
         self.conn.commit()
@@ -264,14 +286,15 @@ class PostgresLoader:
 
     def _cargar_facturas(self, facturas: list[dict], mapa_ids_clientes: dict) -> tuple[dict, dict]:
         """Inserta/actualiza facturas, resolviendo id_cliente_origen ->
-        id_cliente (Postgres) con el mapa que devolvio _cargar_clientes."""
+        id_cliente (Postgres) con el mapa que devolvió _cargar_clientes."""
         mapa_campos = COLUMN_MAP["facturas"]
         query = self.queries["upsert_factura"]
         stats = _stats_vacio(len(facturas))
-        mapa_ids: dict[str, int] = {}
+        mapa_ids: dict[int, int] = {}
 
         cur = self.conn.cursor()
         for i, f in enumerate(facturas, start=1):
+            id_factura_origen = f.get(mapa_campos["id_factura_origen"])
             numero_factura = f.get(mapa_campos["numero_factura"])
             id_cliente_origen = f.get(mapa_campos["id_cliente_origen"])
             id_cliente_pg = mapa_ids_clientes.get(id_cliente_origen)
@@ -281,22 +304,26 @@ class PostgresLoader:
                 self._registrar_error(
                     cur, "facturas", numero_factura,
                     f"Cliente origen {id_cliente_origen!r} no fue cargado previamente "
-                    "(revisar deduplicacion/reasignacion de FKs en Transform)",
+                    "(revisar deduplicación/reasignación de FKs en Transform)",
                     f,
                 )
                 continue
 
             params = {
+                "id_factura_origen": id_factura_origen,
                 "numero_factura": numero_factura,
                 "id_cliente_origen": id_cliente_origen,
                 "id_cliente": id_cliente_pg,
-                "fecha_factura": f.get(mapa_campos["fecha_factura"]),
+                "fecha_emision": f.get(mapa_campos["fecha_emision"]),
+                "estado": f.get(mapa_campos["estado"]),
+                "subtotal": f.get(mapa_campos["subtotal"]),
+                "iva": f.get(mapa_campos["iva"]),
                 "total": f.get(mapa_campos["total"]),
             }
             try:
                 nuevo_id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
-                mapa_ids[numero_factura] = nuevo_id
+                mapa_ids[id_factura_origen] = nuevo_id
             except psycopg2.Error as exc:
                 stats["con_error"] += 1
                 self._registrar_error(cur, "facturas", numero_factura, str(exc), f)
@@ -308,22 +335,23 @@ class PostgresLoader:
 
     def _cargar_detalles(self, detalles: list[dict], mapa_ids_productos: dict, mapa_ids_facturas: dict) -> dict:
         """Inserta/actualiza detalles, resolviendo id_producto_origen ->
-        id_producto y numero_factura -> id_factura."""
+        id_producto y id_factura_origen -> id_factura."""
         mapa_campos = COLUMN_MAP["detalles"]
         query = self.queries["upsert_detalle"]
         stats = _stats_vacio(len(detalles))
 
         cur = self.conn.cursor()
         for i, d in enumerate(detalles, start=1):
-            numero_factura = d.get(mapa_campos["numero_factura"])
+            id_detalle_origen = d.get(mapa_campos["id_detalle_origen"])
+            id_factura_origen = d.get(mapa_campos["id_factura_origen"])
             id_producto_origen = d.get(mapa_campos["id_producto_origen"])
-            id_factura_pg = mapa_ids_facturas.get(numero_factura)
+            id_factura_pg = mapa_ids_facturas.get(id_factura_origen)
             id_producto_pg = mapa_ids_productos.get(id_producto_origen)
 
             if id_factura_pg is None or id_producto_pg is None:
                 stats["con_error"] += 1
                 self._registrar_error(
-                    cur, "detalles", f"{numero_factura}/{id_producto_origen}",
+                    cur, "detalles", f"{id_factura_origen}/{id_producto_origen}",
                     f"No se pudo resolver factura (encontrada={id_factura_pg is not None}) "
                     f"o producto (encontrado={id_producto_pg is not None}) para este detalle",
                     d,
@@ -331,19 +359,22 @@ class PostgresLoader:
                 continue
 
             params = {
-                "numero_factura": numero_factura,
+                "id_detalle_origen": id_detalle_origen,
+                "id_factura_origen": id_factura_origen,
                 "id_factura": id_factura_pg,
                 "id_producto_origen": id_producto_origen,
                 "id_producto": id_producto_pg,
                 "cantidad": d.get(mapa_campos["cantidad"]),
                 "precio_unitario": d.get(mapa_campos["precio_unitario"]),
+                "descuento": d.get(mapa_campos["descuento"], 0),
+                "total_linea": d.get(mapa_campos["total_linea"]),
             }
             try:
                 _id, fue_insertado = self._ejecutar_con_savepoint(cur, query, params)
                 stats["insertados" if fue_insertado else "actualizados"] += 1
             except psycopg2.Error as exc:
                 stats["con_error"] += 1
-                self._registrar_error(cur, "detalles", f"{numero_factura}/{id_producto_origen}", str(exc), d)
+                self._registrar_error(cur, "detalles", f"{id_factura_origen}/{id_producto_origen}", str(exc), d)
             if i % BATCH_SIZE == 0:
                 self.conn.commit()
         self.conn.commit()
@@ -351,7 +382,7 @@ class PostgresLoader:
         return stats
 
     # ---------------------------------------------------------
-    # Estadisticas de carga
+    # Estadísticas de carga
     # ---------------------------------------------------------
     def _guardar_auditoria(self, stats_por_tabla: dict[str, tuple[dict, float]]) -> None:
         """Escribe una fila por tabla en etl_carga_auditoria."""
@@ -387,9 +418,9 @@ class PostgresLoader:
     # ---------------------------------------------------------
     def cargar_todo(self, resultado_transformado: dict) -> dict:
         """Carga clientes, productos, facturas y detalles, en ese orden
-        (respetando las FKs), y devuelve un resumen de estadisticas.
+        (respetando las FKs), y devuelve un resumen de estadísticas.
 
-        Parametros
+        Parámetros
         ----------
         resultado_transformado: dict devuelto por
             transform.orchestrator.ejecutar_transformacion(...)
@@ -434,9 +465,9 @@ class PostgresLoader:
 
 
 # ----------------------------------------------------------------
-# Ejecucion standalone: util para probar solo la etapa de Load,
+# Ejecución standalone: útil para probar solo la etapa de Load,
 # reutilizando el respaldo JSON que pipeline.py genera cuando esta
-# etapa todavia no existia (data/output/resultado_transformado.json).
+# etapa todavía no existía (data/output/resultado_transformado.json).
 # ----------------------------------------------------------------
 def _cargar_desde_json_de_respaldo() -> dict:
     ruta = Path(__file__).resolve().parents[2] / "data" / "output" / "resultado_transformado.json"
