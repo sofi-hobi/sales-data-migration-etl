@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Variables de entorno (contiene contraseñas)
+.env
+
+# Datos generados por el pipeline
+data/output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+sqlserver_data/
+postgres_data/

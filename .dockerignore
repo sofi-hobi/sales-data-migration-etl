@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Python bytecode
+__pycache__
+*.py[cod]
+
+# Entorno virtual
+venv/
+.venv/
+
+# Variables de entorno
+.env
+.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Documentación y tests (no se necesitan en la imagen)
+docs/
+tests/
+notebooks/
+*.md
+LICENSE
+
+# Datos generados
+data/output/
+
+# OS
+.DS_Store
+Thumbs.db

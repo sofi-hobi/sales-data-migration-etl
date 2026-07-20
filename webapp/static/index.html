@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline ETL - Demostración</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sql-color: #ef4444; /* Rojo para SQL Server (sucio) */
+            --pg-color: #10b981; /* Verde para Postgres (limpio) */
+            --tab-active: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, var(--bg-color), #020617);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            background: var(--tab-active);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1600px;
+            justify-content: space-between;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sql-title { color: var(--sql-color); }
+        .pg-title { color: var(--pg-color); }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        
+        .sql-badge { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .pg-badge { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 12px 15px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: #cbd5e1;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+        
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .highlight-error { color: #fca5a5; background: rgba(239, 68, 68, 0.1); }
+        .highlight-ok { color: #6ee7b7; font-weight: 600; }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Ocultar tablas que no están activas */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        @media (max-width: 1200px) {
+            .container { flex-direction: column; }
+            .panel { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Validación del Pipeline ETL</h1>
+    <p class="subtitle">Demostración en vivo de las bases de datos origen y destino</p>
+
+    <!-- Navegación por Pestañas -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('clientes')">1. Clientes (Limpieza/Dedup)</button>
+        <button class="tab-btn" onclick="switchTab('productos')">2. Productos</button>
+        <button class="tab-btn" onclick="switchTab('facturas')">3. Facturas (Reasignación FK)</button>
+        <button class="tab-btn" onclick="switchTab('detalles')">4. Detalles</button>
+    </div>
+
+    <div class="container">
+        <!-- Panel de SQL Server -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="sql-title">SQL Server</h2>
+                <span class="badge sql-badge">Origen (Datos Sucios)</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead id="sql-head"></thead>
+                    <tbody id="sql-body">
+                        <tr><td class="loading">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Panel de PostgreSQL -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="pg-title">PostgreSQL</h2>
+                <span class="badge pg-badge">Destino (Datos Limpios)</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead id="pg-head"></thead>
+                    <tbody id="pg-body">
+                        <tr><td class="loading">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fullData = null;
+        let currentTab = 'clientes';
+
+        // Definición de columnas por tabla
+        const schemas = {
+            clientes: {
+                sqlCols: ['ID', 'Documento', 'Nombre', 'Apellido', 'Correo'],
+                sqlKeys: ['idClienteOrigen', 'documento', 'nombre', 'apellido', 'correo'],
+                pgCols: ['ID Origen', 'Documento', 'Nombre', 'Apellido', 'Correo'],
+                pgKeys: ['id_cliente_origen', 'documento', 'nombre', 'apellido', 'correo']
+            },
+            productos: {
+                sqlCols: ['ID', 'Código', 'Nombre', 'Precio', 'Estado'],
+                sqlKeys: ['idProductoOrigen', 'codigoProducto', 'nombreProducto', 'precio', 'estado'],
+                pgCols: ['ID Origen', 'Código', 'Nombre', 'Precio', 'Estado'],
+                pgKeys: ['id_producto_origen', 'codigo_producto', 'nombre_producto', 'precio', 'estado']
+            },
+            facturas: {
+                sqlCols: ['ID', 'Nº Factura', 'ID Cliente (Ref)', 'Subtotal', 'Total'],
+                sqlKeys: ['idFacturaOrigen', 'numeroFactura', 'idClienteOrigen', 'subtotal', 'total'],
+                pgCols: ['ID Origen', 'Nº Factura', 'ID Cliente (Reasignado)', 'Subtotal', 'Total'],
+                pgKeys: ['id_factura_origen', 'numero_factura', 'id_cliente_origen', 'subtotal', 'total']
+            },
+            detalles: {
+                sqlCols: ['ID', 'ID Factura', 'ID Producto', 'Cantidad', 'Total Línea'],
+                sqlKeys: ['idDetalleOrigen', 'idFacturaOrigen', 'idProductoOrigen', 'cantidad', 'totalLinea'],
+                pgCols: ['ID Origen', 'ID Factura', 'ID Producto', 'Cantidad', 'Total Línea'],
+                pgKeys: ['id_detalle_origen', 'id_factura_origen', 'id_producto_origen', 'cantidad', 'total_linea']
+            }
+        };
+
+        async function init() {
+            try {
+                const response = await fetch('/api/data');
+                fullData = await response.json();
+                renderTab();
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+            }
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTab();
+        }
+
+        function renderTab() {
+            if (!fullData) return;
+            
+            const schema = schemas[currentTab];
+            
+            // Render Headers
+            document.getElementById('sql-head').innerHTML = `<tr>${schema.sqlCols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+            document.getElementById('pg-head').innerHTML = `<tr>${schema.pgCols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+
+            // Render SQL Server Body
+            const sqlBody = document.getElementById('sql-body');
+            sqlBody.innerHTML = '';
+            const sqlRows = fullData.sqlserver[currentTab] || [];
+            
+            if (sqlRows.length > 0) {
+                sqlRows.forEach(row => {
+                    let html = '<tr>';
+                    schema.sqlKeys.forEach(key => {
+                        let val = row[key];
+                        let cssClass = '';
+                        
+                        // Resaltar errores obvios (datos sucios)
+                        if (val === null || val === undefined || (typeof val === 'string' && val.trim() === '')) {
+                            val = 'NULL';
+                            cssClass = 'highlight-error';
+                        }
+                        if (key === 'correo' && val !== 'NULL' && !String(val).includes('@')) {
+                            cssClass = 'highlight-error';
+                        }
+
+                        html += `<td class="${cssClass}">${val}</td>`;
+                    });
+                    html += '</tr>';
+                    sqlBody.innerHTML += html;
+                });
+            } else {
+                sqlBody.innerHTML = `<tr><td colspan="${schema.sqlCols.length}" style="text-align:center">Sin datos</td></tr>`;
+            }
+
+            // Render Postgres Body
+            const pgBody = document.getElementById('pg-body');
+            pgBody.innerHTML = '';
+            const pgRows = fullData.postgres[currentTab] || [];
+
+            if (pgRows.length > 0) {
+                pgRows.forEach(row => {
+                    let html = '<tr>';
+                    schema.pgKeys.forEach((key, index) => {
+                        let val = row[key];
+                        let cssClass = index === 0 ? 'highlight-ok' : '';
+                        html += `<td class="${cssClass}">${val !== null ? val : 'NULL'}</td>`;
+                    });
+                    html += '</tr>';
+                    pgBody.innerHTML += html;
+                });
+            } else {
+                pgBody.innerHTML = `<tr><td colspan="${schema.pgCols.length}" style="text-align:center">Sin datos</td></tr>`;
+            }
+        }
+
+        // Iniciar
+        init();
+    </script>
+</body>
+</html>
