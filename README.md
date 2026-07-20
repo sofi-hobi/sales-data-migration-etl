@@ -39,10 +39,12 @@ docker compose up -d --build
 ```
 
 Una vez levantado:
+
 - El **Pipeline ETL** se ejecutará automáticamente para limpiar y migrar los datos.
-- Puedes ver la **Página Web de Demostración** entrando a: 👉 **http://localhost:8000**
+- Puedes ver la **Página Web de Demostración** entrando a: 👉 **<http://localhost:8000>**
 
 Para detener el proyecto al terminar:
+
 ```bash
 docker compose down
 ```
@@ -136,9 +138,11 @@ sales-data-migration-etl/
 ## Pipeline ETL — Detalle de cada etapa
 
 ### 1. Extract (SQL Server → Python)
+
 Conecta a SQL Server vía pyodbc y extrae las 4 tablas de origen como listas de diccionarios, sin modificar los datos.
 
 ### 2. Transform (Limpieza + Deduplicación)
+
 1. **Cleansing**: Normaliza nombres (Title Case), limpia espacios, valida correos, estandariza teléfonos, parsea fechas
 2. **Deduplication**: Algoritmo Union-Find que agrupa registros por documento/correo coincidente
 3. **Survivorship**: Elige el registro más completo como "sobreviviente", fusiona campos faltantes desde los duplicados
@@ -146,6 +150,7 @@ Conecta a SQL Server vía pyodbc y extrae las 4 tablas de origen como listas de 
 5. **Validation**: Detecta errores de formato e inconsistencias de negocio (totales que no cuadran, fechas futuras, etc.)
 
 ### 3. Load (Python → PostgreSQL)
+
 Inserta los datos limpios en PostgreSQL usando UPSERT (`INSERT ... ON CONFLICT ... DO UPDATE`). Cada fila se ejecuta dentro de un SAVEPOINT para que un error no tumbe toda la transacción. Registra estadísticas en `etl_carga_auditoria` y errores en `etl_carga_errores`.
 
 ## Conexiones locales
@@ -164,6 +169,23 @@ Si modificaste el código Python en `src/` y solo quieres probar el ETL sin tene
 docker compose build etl_pipeline
 docker compose up etl_pipeline
 ```
+
+## Demostración en vivo
+
+1. Asegúrate de tener la aplicación levantada y muestra la web en `http://localhost:8000`.
+2. Ejecuta este comando en tu terminal para inyectar nuevos datos JSON sucios/limpios "en caliente" directamente a SQL Server sin tener que apagar los contenedores:
+
+   ```bash
+   docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Grupo1@BDD!" -C -d SmartCleanOrigen -i /usr/src/app/source_schema/06_load_live_demo.sql
+   ```
+
+3. Ahora ejecuta el pipeline ETL para que limpie y migre esos nuevos datos:
+
+   ```bash
+   docker compose run --rm etl_pipeline
+   ```
+
+4. Refresca tu página web y verás cómo los datos válidos ("Cliente Super Nuevo") aparecieron en PostgreSQL, mientras que los datos sucios ("Cliente Malo Demo") fueron rechazados y filtrados.
 
 ## Tests
 

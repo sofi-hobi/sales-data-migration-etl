@@ -1,0 +1,82 @@
+{
+  "clientes": [
+    {
+      "idClienteOrigen": 900,
+      "documento": "9999999999",
+      "nombre": "Cliente",
+      "apellido": "Super Nuevo",
+      "correo": "nuevo@live.com",
+      "telefono": "0999999999",
+      "direccion": "Calle Live",
+      "ciudad": "Quito",
+      "fechaNacimiento": "1990-01-01",
+      "fechaRegistro": "2024-10-15",
+      "estado": "ACTIVO"
+    },
+    {
+      "idClienteOrigen": 901,
+      "documento": null,
+      "nombre": "Cliente",
+      "apellido": "Malo Demo",
+      "correo": "correo-sin-arroba",
+      "telefono": null,
+      "direccion": null,
+      "ciudad": null,
+      "fechaNacimiento": null,
+      "fechaRegistro": null,
+      "estado": "ACTIVO"
+    }
+  ],
+  "productos": [
+    {
+      "idProductoOrigen": 900,
+      "codigo": "PRD-LIVE-01",
+      "nombre": "Producto Especial Live",
+      "categoria": "SERVICIOS",
+      "precio": 99.99,
+      "estado": "ACTIVO"
+    }
+  ],
+  "facturas": [
+    {
+      "idFacturaOrigen": 9000,
+      "numeroFactura": "FAC-LIVE-001",
+      "idClienteOrigen": 900,
+      "fechaEmision": "2024-10-15",
+      "estado": "PAGADA",
+      "subtotal": 99.99,
+      "iva": 11.99,
+      "total": 111.98
+    },
+    {
+      "idFacturaOrigen": 9001,
+      "numeroFactura": "FAC-LIVE-002",
+      "idClienteOrigen": 901,
+      "fechaEmision": "2024-10-15",
+      "estado": "PAGADA",
+      "subtotal": 99.99,
+      "iva": 11.99,
+      "total": 111.98
+    }
+  ],
+  "detalles": [
+    {
+      "idDetalleOrigen": 90000,
+      "idFacturaOrigen": 9000,
+      "idProductoOrigen": 900,
+      "cantidad": 1,
+      "precioUnitario": 99.99,
+      "descuento": 0.0,
+      "totalLinea": 99.99
+    },
+    {
+      "idDetalleOrigen": 90001,
+      "idFacturaOrigen": 9001,
+      "idProductoOrigen": 900,
+      "cantidad": 1,
+      "precioUnitario": 99.99,
+      "descuento": 0.0,
+      "totalLinea": 99.99
+    }
+  ]
+}
