@@ -1,6 +1,8 @@
 # SmartClean Clientes — Migración SQL Server → PostgreSQL
 
 Proyecto ETL heterogéneo que extrae una base de ventas con datos sucios desde **SQL Server**, normaliza y consolida clientes/productos en **Python**, y carga el resultado limpio en **PostgreSQL**. Todo se ejecuta con Docker Compose y puede demostrarse en una aplicación web.
+> **Guía detallada para el docente:** consulte [`docs/GUIA_EJECUCION.md`](docs/GUIA_EJECUCION.md) o [`docs/GUIA_EJECUCION.pdf`](docs/GUIA_EJECUCION.pdf).
+
 
 ## Arquitectura
 
@@ -38,7 +40,7 @@ Desde la raíz del proyecto:
 
 ```bash
 cp .env.example .env
-docker compose down -v
+docker compose down -v --remove-orphans
 docker compose up -d --build
 ```
 
@@ -108,7 +110,7 @@ Los UPSERT se realizan usando los identificadores estables del origen. Una segun
 Cuando se modifiquen los scripts de creación de PostgreSQL, usa una prueba limpia porque los archivos de `/docker-entrypoint-initdb.d` solo se ejecutan al crear el volumen:
 
 ```bash
-docker compose down -v
+docker compose down -v --remove-orphans
 docker compose up -d --build
 ```
 
@@ -154,6 +156,21 @@ python -m pytest tests -q
 ```
 
 El conjunto incluye pruebas unitarias y un contrato integral sobre el dataset de 1.200 clientes.
+
+## Ejecución reproducible para el docente
+
+El proyecto incluye el dataset de origen versionado, variables de entorno de ejemplo, healthchecks y dependencias entre servicios. Para simular una computadora nueva, clone `main` en otra carpeta y ejecute:
+
+```bash
+git clone https://github.com/sofi-hobi/sales-data-migration-etl.git prueba-profesor
+cd prueba-profesor
+cp .env.example .env
+docker compose down -v --remove-orphans
+docker compose up -d --build
+docker compose ps -a
+```
+
+Los resultados esperados y las consultas de comprobación están detallados en [`docs/GUIA_EJECUCION.md`](docs/GUIA_EJECUCION.md).
 
 ## Diagnóstico
 
